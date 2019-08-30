@@ -18,6 +18,7 @@
 #include "trlaux_i.h"
 #include "trlcore_i.h"
 #include "trl_comm_i.h"
+#include "user_ortho.h"
 /*
 
   Following are the internal subroutines for printing etc used in function
@@ -1942,6 +1943,10 @@ void trl_orth(int nrow, double *v1, int ld1, int m1, double *v2, int ld2,
 	    beta[jnd - 1] = zero;
 	}
     }
+#ifdef USER_ORTHO
+    // User-defined re-orthogonalization
+    USER_ORTHO(nrow, rr, rr);
+#endif
     //
     // .. end of trl_orth ..
     //

@@ -11,7 +11,7 @@
 #
 # Debuging
   DEBUG = -Wall -g
-  OPT = -DBLAS -O3
+  OPT = -DBLAS -O3 -DUSER_ORTHO=dynamicProject
 #
 # Make command
   MAKE = make

@@ -17,6 +17,18 @@ Further problems/questions, contact
 * Kesheng John Wu (John.Wu@ACM.org), or
 * Horst D Simon (hdsimon@lbl.gob).
 
+## Orthogonalization
+
+Lanczos vectors may not necessarily remain in the Krylov space
+due to floating-point roundoff.  In cases where this is a problem,
+the user can supply an additional re-orthogonalization routine
+by specifying the following compiler flag:
+
+    -DUSER_ORTHO=dynamicProject
+
+The example programs (below) include a dummy function, so they
+will still work if this flag is specified.
+
 ## Installation guide
 
 You can use the Makefile in this directory to generate nuTRLan library.
@@ -40,7 +52,7 @@ nuTRLan calls some BLAS routines. These routines are contained in CBLAS
 directory.  If BLAS is not installed on the target machine, the user can
 use, these unoptimized routines by  `make pblib`.
 
-The examples directory contains a small set of examples.
+The `examples` directory contains a small set of examples.
 
 * Example on how to compute eigenpairs of a symmetric matrix on a
    serial machine
