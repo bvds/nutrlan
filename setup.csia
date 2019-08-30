@@ -1,0 +1,10 @@
+
+source iccvars.sh
+source idbvars.sh
+source idbvars2.sh
+source ifortvars.sh
+# source italiqs.sh
+source mklvars64.sh
+source oskivars.sh
+source arpack.sh
+source amdvars.sh

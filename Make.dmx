@@ -1,0 +1,48 @@
+############################################################
+# nuTRLan make include file
+############################################################
+#
+# C compiler
+  CC      = gcc
+  MPICC   = mpicc
+  LOADER  = gcc
+  PLOADER = mpicc
+#
+# Debuging
+  DEBUG = 
+  OPT = -O3 -DF2C -DBLASWRAP
+#
+# Make command
+  MAKE = make
+#  MAKEFLAGS = TOP=${PWD}
+#
+# nuTRLan home directory
+#  TOP=${PWD}
+  NUTRLAN = $(TOP)/libnutrlan.a
+#
+# External directories
+  DIR_CLAPACK = /software/workspace/build/CLAPACK
+#
+# External libraries
+  LIB_DIR = -L/software/lapack
+  MATH    = -lm
+  BLAS    = -lblas
+  LAPACK  = -llapack
+  CLAPACK = $(DIR_CLAPACK)/lapack_LINUX.a
+  F2C     = -lF77 -lI77
+  LIB     = $(LIB_DIR) $(LAPACK) $(BLAS) $(CLAPACK) $(F2C) $(MATH) 
+  PLIB    = $(LIB)
+#
+# Include files
+  INC_CLAPACK = -I$(DIR_CLAPACK)/F2CLIBS \
+                -I$(DIR_CLAPACK)/BLAS/WRAP
+  INC_NUTRLAN  = -I$(TOP)/INC
+  INC         = $(INC_CLAPACK) $(INC_NUTRLAN)
+#
+# Object files
+  OBJ_REAL = dsort2.o dstqrb.o trlan.o trlaux.o trlcore.o restart.o trlmap.o
+  OBJ_CPLX = zdgemm.o zdgemv.o zdaxpy.o ztrlan.o ztrlaux.o ztrlcore.o
+  OBJ_CBLAS = ddot.o zdotc.o d_cnjg.o
+  OBJ = $(OBJ_REAL) $(OBJ_CPLX)
+  OBJ_SERIAL =  trl_comm_none.o ztrl_comm_none.o
+  OBJ_PARALLEL =  trl_comm_mpi.o ztrl_comm_mpi.o

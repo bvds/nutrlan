@@ -1,0 +1,50 @@
+############################################################
+# nuTRLan make include file
+############################################################
+#
+# C compiler
+  FC = ifort
+  CC = icc
+  MPICC = mpicc
+#
+# Debuging
+  DEBUG = -g
+  OPT = -O3 -DBLAS
+#  If linking to CLAPACK
+#  OPT = -O3
+#
+# Make command
+  MAKE      = make
+#  MAKEFLAGS = TOP=${PWD}
+#
+# nuTRLan home directory
+#  TOP = ${PWD}
+  NUTRLAN = $(TOP)/libnutrlan.a
+#
+# External directories
+#  DIR_CLAPACK = /root/ichi/ricpack-1.0/CLAPACK
+#
+# External libraries
+  LIB_DIR = -L/opt/intel/mkl721/lib/64
+  MATH    = -lmkl_solver -lmkl_ipf -lguide
+  BLAS    = -lmkl
+  LAPACK  = -lmkl_lapack64
+#  CLAPACK = $(DIR_CLAPACK)/lapack_IA64.a
+#  F2C     = -lF77 -lI77
+  LIB     = $(LIB_DIR) $(LAPACK) $(BLAS) $(CLAPACK) $(F2C) $(MATH) 
+  PLIB    = $(LIB)
+#
+# Include files
+#  INC_CLAPACK = -I$(DIR_CLAPACK)/F2CLIBS \
+#                -I$(DIR_CLAPACK)/BLAS/WRAP
+  INC_NUTRLAN  = -I$(TOP)/INC
+  INC         = $(INC_CLAPACK) $(INC_NUTRLAN)
+  FINC        = -I$(TOP)/FORTRAN
+#
+# Object files
+  OBJ_REAL = dsort2.o dstqrb.o trlan.o trlaux.o trlcore.o restart.o trlmap.o
+  OBJ_CPLX = zdgemm.o zdgemv.o zdaxpy.o ztrlan.o ztrlaux.o ztrlcore.o
+  OBJ = $(OBJ_REAL) $(OBJ_CPLX)
+  OBJ_SERIAL = $(OBJ) trl_comm_none.o ztrl_comm_none.o
+  OBJ_PARALLEL = $(OBJ) trl_comm_mpi.o ztrl_comm_mpi.o
+  FOBJ = ftrlan.o

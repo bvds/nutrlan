@@ -1,0 +1,35 @@
+2008-03-06 John Wu <John.Wu at ACM.org>
+	* Make.linux: add -Wall to DEBUG, address all the warnings issued
+	following the suggestion from Anton Korobeynikov
+	* SRC/d_sign.c: removed based on the suggestion of Anton
+	* Make.*: comment out MAKE_FLAG / MAKEFLAGS
+	* Makefile: change clean to go to examples as well, explicitly
+	pass variable TOP to the make commands, change makefiles in
+	subdirectories to use full path followed by ..
+
+2008-03-05 John Wu <John.Wu at ACM.org>
+	* examples/simple.c: change diag_op to used diag((i+1)*(i+1))
+	* INC/trlan.h: add definition of trl_matvec (following the
+	suggestion from Anton Korobeynikov), change documentation to
+	doxygen style,
+	* INC, SRC: remove most of the trailing _ in the function names
+	* INC/restart_i.h: removed, the only function that is visible
+	outside is move to INC/trlcore_i.h
+	* INC/ctrlan.h: removed, the functions in this header file are
+	merged into INC/trlan.h, reorganize header files to they include
+	their dependencies
+	* INC/trlan.h, INC/ztrlan.h: add conditional macro
+	TRL_FORTRAN_COMPATIBLE.  If it is set, use the old Fortran style
+	matrix-vector multiplication interface, otherwise use a newer
+	version suggested by Anton Korobeynikov.
+
+2008-02-19 John Wu <John.Wu at ACM.org>
+	* Make*: change CTRLAN to NUTRLAN
+	* examples/simple.c:70 change print statement to indicate where is
+	the output
+
+2008-12-18 John Wu <John.Wu at ACM.org>
+	* SRC/trlaux.c:1023 take the difference of char* then cast to int
+
+2008-12-22 Ichitaro Yamazaki <ic.yamazaki@gmail.com>
+	* Check the complete source code into codeforge.lbl.gov SVN archive

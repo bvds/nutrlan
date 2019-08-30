@@ -1,0 +1,63 @@
+############################################################
+# nuTRLan make include file
+############################################################
+#
+# C compiler
+  CC = xlc
+#  CC = cc
+  MPICC = mpcc
+#
+# Fortran compiler
+  FC = mpxlf90
+#
+# Debuging
+#  DEBUG = -g
+  OPT  = -O3 -qcpluscmt -qstrict -lxlf90 -DSTD_DATA -DBLAS_EXT -DNOCHANGE -DCBLAS 
+  FOPT = -O3 -qstrict  
+#  OPT = -O3 -qcpluscmt -qstrict -lxlf90 -DESSL -DNOCHANGE
+#
+# Make command
+  MAKE = make
+#  MAKEFLAGS = TOP=${PWD}
+#
+# nuTRLan home directory
+#  TOP = ${PWD}
+  NUTRLAN = $(TOP)/libnutrlan.a
+#
+# External directories
+#  DIR_CLAPACK = /home2/u14/yamazaki/src_so_sept02/nutrlan/CLAPACK
+#
+# External libraries
+#  LIB_DIR = -L$(DIR_CLAPACK) -L$(DIR_CLAPACK)/F2CLIBS
+#  MATH    = -lm
+#  BLAS    = ../../ZTRLan1/CLAPACK/blas.a 
+#  LAPACK  = $$LAPACK
+#  CLAPACK = $(DIR_CLAPACK)/lapack.a
+#  F2C     = $(DIR_CLAPACK)/F2CLIBS/libF77.a $(DIR_CLAPACK)/F2CLIBS/libI77.a
+#  BLASWRAP = $(DIR_CLAPACK)/BLAS/WRAP/libcblaswr.a
+#  LIB     = $(LIB_DIR) $$LAPACK $(BLAS) $(CLAPACK) $(F2C) $(MATH) 
+  MATH    = -lessl -lm
+  LIB     = $$LAPACK $(MATH)
+  PLIB    = $(LIB)
+#
+# Include files
+  INC_CLAPACK = -I$(DIR_CLAPACK)/F2CLIBS \
+                -I$(DIR_CLAPACK)/BLAS/WRAP
+  INC_NUTRLAN  = -I$(TOP)/INC
+  INC         = $(INC_NUTRLAN)
+#
+# Object files
+  OBJ_CBLAS = zdotc.o d_cnjg.o
+#              daxpy.o 
+#              dcopy.o 
+#              ddot.o 
+#              dgemm.o 
+#              dgemv.o 
+#              dscal.o 
+#              lsame.o \
+#              zaxpy.o zcopy.o zdotc.o zdscal.o zgemm.o zgemv.o zscal.o
+  OBJ_REAL  = dsort2.o dstqrb.o trlan.o trlaux.o trlcore.o restart.o trlmap.o
+  OBJ_CPLX  = zdgemm.o zdgemv.o zdaxpy.o ztrlan.o ztrlaux.o ztrlcore.o
+  OBJ = $(OBJ_REAL) $(OBJ_CPLX)
+  OBJ_SERIAL = trl_comm_none.o ztrl_comm_none.o
+  OBJ_PARALLEL = trl_comm_mpi.o ztrl_comm_mpi.o
