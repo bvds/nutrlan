@@ -93,8 +93,8 @@
 
 */
 void
-trlanczos(trl_matvec op, trl_info * info, int nrow, int mev, double *eval,
-	  double *evec, int lde, double *base, int ldb, int nbas,
+trlanczos(trl_matvec op, trl_uo user_ortho, trl_info * info, int nrow, int mev,
+          double *eval, double *evec, int lde, double *base, int ldb, int nbas,
 	  double *wrk, int lwrk);
 
 /*

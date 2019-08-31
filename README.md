@@ -21,13 +21,7 @@ Further problems/questions, contact
 
 Lanczos vectors may not necessarily remain in the Krylov space
 due to floating-point roundoff.  In cases where this is a problem,
-the user can supply an additional re-orthogonalization routine
-by specifying the following compiler flag:
-
-    -DUSER_ORTHO=dynamicProject
-
-The example programs (below) include a dummy function, so they
-will still work if this flag is specified.
+the user can supply an additional re-orthogonalization routine.
 
 ## Installation guide
 

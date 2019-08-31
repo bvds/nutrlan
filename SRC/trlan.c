@@ -18,8 +18,8 @@
 #include "trlaux_i.h"
 #include "trl_comm_i.h"
 
-void trlan(trl_matvec op, trl_info * info, int nrow, int mev, double *eval,
-	   double *evec, int lde, int lwrk, double *wrk )
+void trlan(trl_matvec op, trl_uo user_ortho, trl_info * info, int nrow, int mev,
+           double *eval, double *evec, int lde, int lwrk, double *wrk )
 {
 /*
 // Purpose: Top (user) level routines
@@ -76,6 +76,17 @@ void trlan(trl_matvec op, trl_info * info, int nrow, int mev, double *eval,
 //                   On entry, specifies the leading dimension of the array
 //                   yout, i.e., the i-th column vector starts with element
 //                   (i-1)*ldy+1 in Yout and ends with element (i-1)*ldy+nrow.
+//
+// user_ortho (input) Pointer to function that provides additional
+//          re-orthogonalization.  For no function, set to NULL.
+//          void user_ortho(nrow, x, y)
+//             nrow  (input) Integer
+//                    On entry, specifies the number of rows in x.
+//             x     (input) double precision array of length nrow.
+//                    On entry, specifies the vector to be orthogonalized. 
+//             y     (output) double precision array of length nrow.
+//                    On exit, the orthogonalized vector.
+//                    x and y may overlap.
 //
 // info    (input) pointer to the structure trl_info_
 //          On entry, points to the data structure to store the information
@@ -231,8 +242,8 @@ void trlan(trl_matvec op, trl_info * info, int nrow, int mev, double *eval,
 
     /* call trlanczos to do the real work  */
     //printf( "calling trlanczso (%d)\n",info->cpflag );
-    trlanczos(op, info, nrow, mev, eval, evec, lde, base, ldb, nbas,
-	      misc, nmis);
+    trlanczos(op, user_ortho, info, nrow, mev,
+              eval, evec, lde, base, ldb, nbas, misc, nmis);
 #ifdef DEBUG
     printf( "DEBUG ** out of trlanczos (locked=%d) **\n",info->locked );
 #endif

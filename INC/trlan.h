@@ -33,6 +33,7 @@
 */
 typedef void (*trl_matvec) (int *pnrow, int *pncol, double *x, int *pldx,
 			    double *y, int *pldy);
+typedef void (*trl_uo) (int *pnrow, double *x, double *y);
 #else
 /**
    Prototype matrix-vector multiplication function.  Defined to be easier
@@ -66,6 +67,7 @@ typedef void (*trl_matvec) (int *pnrow, int *pncol, double *x, int *pldx,
 typedef void (*trl_matvec) (const int nrow, const int ncol,
 			    const double *x, const int ldx,
 			    double *y, const int ldy, void *mvparam);
+typedef void (*trl_uo) (const int nrow, double*x, double *y);
 #endif
 
 /**
@@ -303,7 +305,7 @@ typedef struct strct_trl_info {
           eigenpairs will be stored at wrk(1:info%nec) on exit.
 
 */
-void trlan(trl_matvec op,
+void trlan(trl_matvec op, trl_uo user_ortho,
 	   trl_info * info, int nrow, int mev, double *eval,
 	   double *evec, int lde, int lwrk, double *wrk );
 /**

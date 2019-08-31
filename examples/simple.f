@@ -7,7 +7,7 @@
       Real(8), DIMENSION(:), ALLOCATABLE :: res, wrk
       Type(trlan_info_t) :: info
       Integer :: i, ii, check
-      External diag_op
+      External diag_op, user_ortho
       DO ned = 10, 10, 2
       DO maxlan = 200, 200, 10
       lwrk = maxlan*(maxlan+10)
@@ -20,7 +20,7 @@
       Call trl_set_iguess(info,%VAL(0),%VAL(1),%VAL(0),%VAL(0))
       eval(1:nrow) = 0.0D0
       evec(1:nrow,1) = 1.0D0
-      Call trlan(diag_op, info, %VAL(nrow), %VAL(mev), eval, evec, 
+      Call trlan(diag_op, user_ortho, info, %VAL(nrow), %VAL(mev), eval, evec, 
      +           %VAL(nrow), %VAL(lwrk), res )
       WRITE(6,*) '   info->stat',info%stat
       Call trl_print_info(info, %VAL(3*nrow))
@@ -59,3 +59,14 @@
         End Do
       End Do
       End Subroutine diag_op
+
+      Subroutine user_ortho(nrow, x, y)
+      IMPLICIT NONE
+      INTEGER, intent(in)  :: nrow
+      Real(8), intent(input) :: x
+      Real(8), intent(output) :: y
+      INTEGER i
+      Do i = 1, nrow
+         y(i) = x(i)
+      End Do
+      End Subroutine user_ortrho

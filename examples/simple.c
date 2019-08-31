@@ -84,7 +84,7 @@ int main( int argn, char **argv ) {
     }
     //info.verbose =  8;
     // call TRLAN to compute the eigenvalues
-    trlan(diag_op, &info, nrow, mev, eval, evec, nrow, lwrk, res );
+    trlan(diag_op, NULL, &info, nrow, mev, eval, evec, nrow, lwrk, res );
     trl_print_info(&info, 3*nrow);
     for( i=0; i<mev; i++ ) { // need to match with the definition in diag_op
 	exact[i] = (i+1)*(i+1);

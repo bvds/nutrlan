@@ -18,7 +18,6 @@
 #include "trlaux_i.h"
 #include "trlcore_i.h"
 #include "trl_comm_i.h"
-#include "user_ortho.h"
 /*
 
   Following are the internal subroutines for printing etc used in function
@@ -674,6 +673,17 @@ void log_error_state(trl_info * info, int kept, int j1, int j2, int jnd,
 //             ldy   (input) Integer
 //                    On entry, specifies the leading dimension of yout.
 //
+// user_ortho (input) Pointer to function that provides additional
+//          re-orthogonalization.  For no function, set to NULL.
+//          void user_ortho(nrow, x, y)
+//             nrow  (input) Integer
+//                    On entry, specifies the number of rows in x.
+//             x     (input) double precision array of length nrow.
+//                    On entry, specifies the vector to be orthogonalized. 
+//             y     (output) double precision array of length nrow.
+//                    On exit, the orthogonalized vector.
+//                    x and y may overlap.
+//
 // info    (input) Pointer to structure trl_info_
 //          On entry, points to the current TRL_INFO.
 //
@@ -711,8 +721,8 @@ void log_error_state(trl_info * info, int kept, int j1, int j2, int jnd,
 //
 */
 void
-trlanczos(trl_matvec op, trl_info * info, int nrow, int mev, double *eval,
-	  double *evec, int lde, double *base, int ldb, int nbas,
+trlanczos(trl_matvec op, trl_uo user_ortho, trl_info *info, int nrow, int mev,
+          double *eval, double *evec, int lde, double *base, int ldb, int nbas,
 	  double *wrk, int lwrk)
 {
     /*
@@ -1018,6 +1028,10 @@ trlanczos(trl_matvec op, trl_info * info, int nrow, int mev, double *eval,
 	clk1 = clock();
 	trl_orth(nrow, evec, lde, j1, base, ldb, j2, rr, kept, alpha,
 		 beta, wrk2, lwrk2, info);
+        // User-defined re-orthogonalization
+        if (user_ortho != NULL) {
+            user_ortho(nrow, rr, rr);
+        }
 	if (info->verbose > 8) {
 	    /* check orthogonality after the initilization step */
 	    trl_check_orth(info, nrow, evec, lde, j1n, base, ldb, j2n,
@@ -1943,10 +1957,6 @@ void trl_orth(int nrow, double *v1, int ld1, int m1, double *v2, int ld2,
 	    beta[jnd - 1] = zero;
 	}
     }
-#ifdef USER_ORTHO
-    // User-defined re-orthogonalization
-    USER_ORTHO(nrow, rr, rr);
-#endif
     //
     // .. end of trl_orth ..
     //
