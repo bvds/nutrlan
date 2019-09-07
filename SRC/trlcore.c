@@ -1,5 +1,5 @@
 /*
-// ZTRLan routine 
+// trlanczos routine 
 // Lawrence Berkeley National Lab.
 //
 */
@@ -738,14 +738,13 @@ trlanczos(trl_matvec op, trl_uo user_ortho, trl_info *info, int nrow, int mev,
     // .. local variables ..
     */
     char title[STRING_LEN];
-    int i, i1, i2, j1, j2, jnd, jml, j1n, j2n, kept, prek, ldqa, ldrr,
-	count;
+    int i, i1, i2, j1, j2, jnd, jml, j1n, j2n, kept, prek, ldqa, ldrr;
     int next_test, lwrk2, chkpnt, locked, degen;
     clock_t clk1;
     int *iwrk;
     double d__1;
-    double *alpha, *beta, *rr, *rot, *alfrot, *betrot, *lambda, *res, *yy,
-	*qa, *qb, *wrk2;
+    double *alpha, *beta, *rr = NULL, *rot, *alfrot, *betrot, *lambda, *res, *yy,
+	*qa = NULL, *qb = NULL, *wrk2;
     /*
     // ..
     // .. executable statements ..
@@ -802,7 +801,7 @@ trlanczos(trl_matvec op, trl_uo user_ortho, trl_info *info, int nrow, int mev,
       wrk2 points to the end of available wrk 
       (first 4*maxlan hold alpha, beta, alfrot, and betrot)
       to the end of wrk.
-      *** j1 and j2 are the number of colums, and not indices ***
+      *** j1 and j2 are the number of columns, and not indices ***
       */
     wrk2 = &wrk[i2];
     lwrk2 = lwrk - i2;
@@ -817,9 +816,6 @@ trlanczos(trl_matvec op, trl_uo user_ortho, trl_info *info, int nrow, int mev,
     kept = jnd;
     if (info->stat != 0) {
 	if (info->stat < 0 && (info->verbose > 0 || info->my_pe == 0)) {
-	    qa = NULL;
-	    qb = NULL;
-	    rr = NULL;
 	    kept = 0;
 	    j1 = 0;
 	    j2 = 0;
@@ -846,7 +842,6 @@ trlanczos(trl_matvec op, trl_uo user_ortho, trl_info *info, int nrow, int mev,
     // *********************************************** //
     */
     //tick1 = clock();
-    count = 0;
     degen = -1;
     while (info->matvec < info->maxmv
 	   && (degen != -1 || info->nec < info->ned)) {
@@ -1132,7 +1127,11 @@ trlanczos(trl_matvec op, trl_uo user_ortho, trl_info *info, int nrow, int mev,
 	    clk1 = clock();
 	    trl_orth(nrow, evec, lde, j1, base, ldb, j2, rr, kept, alpha,
 		     beta, wrk2, lwrk2, info);
-	    add_clock_ticks(info, &(info->clk_orth), &(info->tick_h),
+            // User-defined re-orthogonalization
+            if (user_ortho != NULL) {
+                user_ortho(nrow, rr, rr);
+            }
+            add_clock_ticks(info, &(info->clk_orth), &(info->tick_h),
 			    clk1);
 	    info->flop_h = info->flop_h + info->flop;
 	    /*
@@ -1798,7 +1797,7 @@ void trl_orth(int nrow, double *v1, int ld1, int m1, double *v2, int ld2,
     //         On entry, contains the first part of Lanczos basis computed.
     //
     // ld1    (input) Integer
-    //         On entry, specifies the leading dimention of v1.
+    //         On entry, specifies the leading dimension of v1.
     //
     // m1     (input) Integer
     //         On entry, specifies the number of Lanczos basis in v1.
@@ -1836,8 +1835,8 @@ void trl_orth(int nrow, double *v1, int ld1, int m1, double *v2, int ld2,
     //
     // ..
     // .. local parameters ..
-    double zero = 0.0, one = 1.0;
-    long c__1 = 1;
+    const double zero = 0.0, one = 1.0;
+    const long c__1 = 1;
     //
     // ..
     // .. local variables ..
@@ -2091,7 +2090,7 @@ void trl_get_eval(int nd, int locked, double *alpha, double *beta,
     // beta       (input) double precision array (nd)
     //             On entry, contains the beta values.
     //
-    // lambea     (output) double precision array (nd)
+    // lambda     (output) double precision array (nd)
     //             On exit, contains the Ritz values.
     //
     // res        (output) double precision array (nd)

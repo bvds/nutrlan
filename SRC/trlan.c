@@ -1354,7 +1354,7 @@ void trl_print_setup(trl_info * info, int lbas, int lmis, int lwrk)
 /*
 // Purpose:
 // ========
-// Print the definition of the eigenvalue problme.
+// Print the definition of the eigenvalue problem.
 //
 // Arguments:
 // ==========

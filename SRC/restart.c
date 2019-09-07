@@ -168,9 +168,9 @@ trl_restart_max_gap_cost_ratio(int n, int tind, trl_info * info,
 //
 // ..
 // .. Local scalars ..
-    int i, j, k, nd, l1, l2, mn, mn1, mn2, t, k1, k2,
-	min_k1, min_k2, min_m, min_l;
-    double gamma0, gamma, val, min_val, min_gamma, min_gamma0, min_ratio,
+    int i, j, k, nd, l1, l2, mn, mn2, t, k1, k2,
+	min_k1, min_k2, min_m, min_l = 0;
+    double gamma0, gamma, val, min_val, min_gamma = 0, min_gamma0 = 0,
 	tmp, tmp2, tmp3, up, dw, def1, def2, z1, z2;
 //
 // ..
@@ -233,7 +233,6 @@ trl_restart_max_gap_cost_ratio(int n, int tind, trl_info * info,
     // ** Static approach to decided the minimum gap ratio **
     //t = max (min (n - info->ned, nint ((k2 - k1) * info->rfact)), 2);
     //
-    mn1 = nint(2.0 * (info->klan) / 5.0);
     min_val = 0.0;
     min_k1 = k1;
     min_k2 = k2;
@@ -255,10 +254,6 @@ trl_restart_max_gap_cost_ratio(int n, int tind, trl_info * info,
 	    l1 = (i + 1) + (n - j);
 	    l2 = l1 + info->locked;
 
-	    //mn2 = mn1;
-	    //if( mn1 < (info->rfact*l2) ) mn2 = info->rfact*l2;
-	    //if( mn1 < (1.5*l2) ) mn2 = 1.5*l2;
-	    //if( mn1 < (l2+1) ) mn2 = l2+1;
 	    mn2 = l2 + 1;
 	    if (mn2 > mn)
 		mn2 = mn;
@@ -283,9 +278,6 @@ trl_restart_max_gap_cost_ratio(int n, int tind, trl_info * info,
 		    min_val = val;
 		    min_gamma = gamma;
 		    min_gamma0 = gamma0;
-		    min_ratio =
-			(lambda[i + 1] - lambda[tind]) / (lambda[j - 1] -
-							  lambda[tind]);
 		    min_l = l2;
 		}
 	    }
@@ -359,8 +351,8 @@ trl_restart_max_gap_cost_ratio_static(int n, int tind, trl_info * info,
 // ..
 // .. Local scalars ..
     int i, j, nd, l1, l2, mn, mn1, mn2, t, k1, k2,
-	min_k1, min_k2, min_m, min_l;
-    double gamma0, gamma, val, min_val, min_gamma, min_gamma0, min_ratio,
+	min_k1, min_k2, min_m;
+    double gamma0, gamma, val, min_val,
 	tmp2, tmp3, tmp;
 //
 // ..
@@ -431,12 +423,6 @@ trl_restart_max_gap_cost_ratio_static(int n, int tind, trl_info * info,
 		min_k2 = j;
 		min_m = mn2;
 		min_val = val;
-		min_gamma = gamma;
-		min_gamma0 = gamma0;
-		min_ratio =
-		    (lambda[i + 1] - lambda[tind]) / (lambda[j - 1] -
-						      lambda[tind]);
-		min_l = l2;
 	    }
 	}
     }
@@ -495,8 +481,8 @@ trl_restart_max_gap_cost_ratio_adjust(int n, int tind, int kept,
 // ..
 // .. Local scalars ..
     int i, j, k, nd, l, mn, mn1, mn2, t, k1, k2, min_k1, min_k2,
-	min_m, min_l;
-    double gamma0, gamma, val, min_val, min_gamma, min_gamma0, min_ratio,
+	min_m;
+    double gamma0, gamma, val, min_val, min_gamma,
 	alpha;
 //
 // ..
@@ -555,11 +541,6 @@ trl_restart_max_gap_cost_ratio_adjust(int n, int tind, int kept,
 		    min_m = k;
 		    min_val = val;
 		    min_gamma = gamma;
-		    min_gamma0 = gamma0;
-		    min_ratio =
-			(lambda[i + 1] - lambda[tind]) / (lambda[j - 1] -
-							  lambda[tind]);
-		    min_l = l;
 		}
 	    }
 	}
