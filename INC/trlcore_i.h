@@ -295,9 +295,10 @@ void print_lambda_res(trl_info * info, int jnd, double *lambda,
 //
 ////
 */
-void trl_orth(int nrow, double *v1, int ld1, int m1, double *v2, int ld2,
-	       int m2, double *rr, int kept, double *alpha, double *beta,
-	       double *wrk, int lwrk, trl_info * info);
+void trl_orth(int nrow, trl_uo user_ortho, double *v1, int ld1, int m1,
+              double *v2, int ld2, int m2, double *rr, int kept,
+              double *alpha, double *beta,
+              double *wrk, int lwrk, trl_info * info);
 /*
 // Purpose
 // =======
@@ -353,7 +354,7 @@ void trl_orth(int nrow, double *v1, int ld1, int m1, double *v2, int ld2,
 //
 ////
 */
-void trl_initial_guess(int nrow, double *evec, int lde, int mev,
+void trl_initial_guess(int nrow, trl_uo user_ortho, double *evec, int lde, int mev,
 			double *base, int ldb, int nbas, double *alpha,
 			double *beta, int *j1, int *j2, trl_info * info,
 			double *wrk, int lwrk);
@@ -665,9 +666,10 @@ void trl_ritz_vectors(int nrow, int lck, int ny, double *yy, int ldy,
 //
 ////
 */
-int trl_cgs(trl_info * info, int nrow, double *v1, int ld1, int m1,
-	     double *v2, int ld2, int m2, double *rr, double *rnrm,
-	     double *alpha, int *north, double *wrk);
+int trl_cgs(trl_info * info, trl_uo user_ortho, int nrow,
+            double *v1, int ld1, int m1,
+            double *v2, int ld2, int m2, double *rr, double *rnrm,
+            double *alpha, int *north, double *wrk);
 /*
 // Purpose
 // =======

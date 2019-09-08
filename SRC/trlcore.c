@@ -805,7 +805,7 @@ trlanczos(trl_matvec op, trl_uo user_ortho, trl_info *info, int nrow, int mev,
       */
     wrk2 = &wrk[i2];
     lwrk2 = lwrk - i2;
-    trl_initial_guess(nrow, evec, lde, mev, base, ldb, nbas, alpha,
+    trl_initial_guess(nrow, user_ortho, evec, lde, mev, base, ldb, nbas, alpha,
 		      beta, &j1, &j2, info, wrk2, lwrk2);
     /*
       On return from trl_initial_guess, j1 is the last column index of
@@ -1021,12 +1021,8 @@ trlanczos(trl_matvec op, trl_uo user_ortho, trl_info *info, int nrow, int mev,
 	*/
 	info->flop_h = info->flop_h - info->flop;
 	clk1 = clock();
-	trl_orth(nrow, evec, lde, j1, base, ldb, j2, rr, kept, alpha,
-		 beta, wrk2, lwrk2, info);
-        // User-defined re-orthogonalization
-        if (user_ortho != NULL) {
-            user_ortho(nrow, rr, rr);
-        }
+	trl_orth(nrow, user_ortho, evec, lde, j1, base, ldb, j2, rr, kept,
+                 alpha, beta, wrk2, lwrk2, info);
 	if (info->verbose > 8) {
 	    /* check orthogonality after the initilization step */
 	    trl_check_orth(info, nrow, evec, lde, j1n, base, ldb, j2n,
@@ -1125,12 +1121,8 @@ trlanczos(trl_matvec op, trl_uo user_ortho, trl_info *info, int nrow, int mev,
 	    */
 	    info->flop_h = info->flop_h - info->flop;
 	    clk1 = clock();
-	    trl_orth(nrow, evec, lde, j1, base, ldb, j2, rr, kept, alpha,
-		     beta, wrk2, lwrk2, info);
-            // User-defined re-orthogonalization
-            if (user_ortho != NULL) {
-                user_ortho(nrow, rr, rr);
-            }
+	    trl_orth(nrow, user_ortho, evec, lde, j1, base, ldb, j2, rr, kept,
+                     alpha, beta, wrk2, lwrk2, info);
             add_clock_ticks(info, &(info->clk_orth), &(info->tick_h),
 			    clk1);
 	    info->flop_h = info->flop_h + info->flop;
@@ -1582,7 +1574,7 @@ void trl_smooth_rr(int n, double *rr)
     */
 }
 
-void trl_initial_guess(int nrow, double *evec, int lde, int mev,
+void trl_initial_guess(int nrow,  trl_uo user_ortho, double *evec, int lde, int mev,
 		       double *base, int ldb, int nbas, double *alpha,
 		       double *beta, int *j1, int *j2, trl_info * info,
 		       double *wrk, int lwrk)
@@ -1741,14 +1733,14 @@ void trl_initial_guess(int nrow, double *evec, int lde, int mev,
     nran = info->nrand;
     north = info->north;
     if (*j1 < mev) {
-	info->stat = trl_cgs(info, nrow, evec, lde, *j1, base, ldb, 0,
+	info->stat = trl_cgs(info, user_ortho, nrow, evec, lde, *j1, base, ldb, 0,
 			     &evec[(*j1) * lde], &rnrm, &tmp, &i, wrk);
     } else if (*j2 <= 0) {
-	info->stat = trl_cgs(info, nrow, evec, lde, *j1, evec, lde, 0,
+	info->stat = trl_cgs(info, user_ortho, nrow, evec, lde, *j1, evec, lde, 0,
 			     base, &rnrm, &tmp, &i, wrk);
 
     } else {
-	info->stat = trl_cgs(info, nrow, evec, lde, *j1, base, ldb, *j2,
+	info->stat = trl_cgs(info, user_ortho, nrow, evec, lde, *j1, base, ldb, *j2,
 			     &base[(*j2) * ldb], &rnrm, &tmp, &i, wrk);
     }
     info->flop =
@@ -1773,8 +1765,9 @@ void trl_initial_guess(int nrow, double *evec, int lde, int mev,
 }
 
 ////
-void trl_orth(int nrow, double *v1, int ld1, int m1, double *v2, int ld2,
-	      int m2, double *rr, int kept, double *alpha, double *beta,
+void trl_orth(int nrow, trl_uo user_ortho, double *v1, int ld1, int m1,
+              double *v2, int ld2, int m2, double *rr, int kept,
+              double *alpha, double *beta,
 	      double *wrk, int lwrk, trl_info * info)
 {
     //
@@ -1792,6 +1785,17 @@ void trl_orth(int nrow, double *v1, int ld1, int m1, double *v2, int ld2,
     // ==========
     // nrow   (input) Integer
     //         On entry, specifies the number of rows in eigenvectors.
+    //
+    // user_ortho (input) Pointer to function that provides additional
+    //         re-orthogonalization.  For no function, set to NULL.
+    //         void user_ortho(nrow, x, y)
+    //             nrow  (input) Integer
+    //                    On entry, specifies the number of rows in x.
+    //             x     (input) double precision array of length nrow.
+    //                    On entry, specifies the vector to be orthogonalized. 
+    //             y     (output) double precision array of length nrow.
+    //                    On exit, the orthogonalized vector.
+    //                    x and y may overlap.
     //
     // v1     (input) double precision array (ld1,m1)
     //         On entry, contains the first part of Lanczos basis computed.
@@ -1899,7 +1903,7 @@ void trl_orth(int nrow, double *v1, int ld1, int m1, double *v2, int ld2,
 	// perform global re-orthogonalization
 	nr = info->nrand;
 	no = info->north;
-	info->stat = trl_cgs(info, nrow, v1, ld1, m1, v2, ld2, m2, rr,
+	info->stat = trl_cgs(info, user_ortho, nrow, v1, ld1, m1, v2, ld2, m2, rr,
 			     &beta[jnd - 1], &alpha[jnd - 1],
 			     &(info->north), wrk);
 	info->flop =
@@ -1929,6 +1933,11 @@ void trl_orth(int nrow, double *v1, int ld1, int m1, double *v2, int ld2,
 	trl_daxpy(nrow, d__1, qa, c__1, rr, c__1);
 	d__1 = -wrk[1];
 	trl_daxpy(nrow, d__1, qb, c__1, rr, c__1);
+        // User-defined re-orthogonalization
+        // What about normalization?
+        if (user_ortho != NULL) {
+            user_ortho(nrow, rr, rr);
+        }
 	tmp = one / beta[jnd - 1];
 	trl_dscal(nrow, tmp, rr, c__1);
 	info->flop = info->flop + 9 * nrow;
@@ -1944,6 +1953,11 @@ void trl_orth(int nrow, double *v1, int ld1, int m1, double *v2, int ld2,
 	alpha[jnd - 1] = alpha[jnd - 1] + wrk[0];
 	d__1 = -wrk[0];
 	trl_daxpy(nrow, d__1, qa, c__1, rr, c__1);
+        // User-defined re-orthogonalization
+        // What about normalization?
+        if (user_ortho != NULL) {
+            user_ortho(nrow, rr, rr);
+        }
 	tmp = one / beta[jnd - 1];
 	trl_dscal(nrow, tmp, rr, c__1);
 	info->flop = info->flop + 5 * nrow;
@@ -2897,7 +2911,8 @@ void trl_ritz_vectors(int nrow, int lck, int ny, double *yy, int ldy,
 }
 
 ////
-int trl_cgs(trl_info * info, int nrow, double *v1, int ld1, int m1,
+int trl_cgs(trl_info * info, trl_uo user_ortho, int nrow,
+            double *v1, int ld1, int m1,
 	    double *v2, int ld2, int m2, double *rr, double *rnrm,
 	    double *alpha, int *north, double *wrk)
 {
@@ -2909,6 +2924,17 @@ int trl_cgs(trl_info * info, int nrow, double *v1, int ld1, int m1,
     // =========
     // info   (input) Pointer to structure trl_info_
     //         On entry, points to the current TRL_INFO.
+    //
+    // user_ortho (input) Pointer to function that provides additional
+    //         re-orthogonalization.  For no function, set to NULL.
+    //         void user_ortho(nrow, x, y)
+    //             nrow  (input) Integer
+    //                    On entry, specifies the number of rows in x.
+    //             x     (input) double precision array of length nrow.
+    //                    On entry, specifies the vector to be orthogonalized. 
+    //             y     (output) double precision array of length nrow.
+    //                    On exit, the orthogonalized vector.
+    //                    x and y may overlap.
     //
     // nrow   (input) Integer
     //         On entry, specifies the number of rows in eigenvectors.
@@ -2990,6 +3016,13 @@ int trl_cgs(trl_info * info, int nrow, double *v1, int ld1, int m1,
 		d__1 = -wrk[nold - 1];
 		trl_daxpy(nrow, d__1, v2, one, rr, one);
 	    }
+
+            // User-defined re-orthogonalization
+            // Normalization performed below
+            if (user_ortho != NULL) {
+                user_ortho(nrow, rr, rr);
+            }
+
 	    /*
 	      if( irnd == 0) {
 	      tmp = (ld1*nold)*DBL_EPSILON*max(fabs(*alpha), *rnrm);
@@ -3078,6 +3111,7 @@ int trl_cgs(trl_info * info, int nrow, double *v1, int ld1, int m1,
 		trl_smooth_rr(nrow, rr);
 	    }
 	}
+
 	// failed to reduce the dot-products between the new vector
 	// and the old vectors to small number -- usually an indication of
 	// problem with orthogonality of the old vectors

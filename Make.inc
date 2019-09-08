@@ -10,7 +10,7 @@
   PLOADER = mpicc
 #
 # Debuging
-  DEBUG = -Wall -g
+  DEBUG = -Wall #-g
   OPT = -DBLAS -O3
 #
 # Make command
