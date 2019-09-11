@@ -77,16 +77,15 @@ void trlan(trl_matvec op, trl_uo user_ortho, trl_info * info, int nrow, int mev,
 //                   yout, i.e., the i-th column vector starts with element
 //                   (i-1)*ldy+1 in Yout and ends with element (i-1)*ldy+nrow.
 //
-// user_ortho (input) Pointer to function that provides additional
+// user_ortho (input) Pointer to a function that provides additional
 //          re-orthogonalization.  For no function, set to NULL.
-//          void user_ortho(nrow, x, y)
+//          void user_ortho(nrow, v, normDiff)
 //             nrow  (input) Integer
-//                    On entry, specifies the number of rows in x.
-//             x     (input) double precision array of length nrow.
+//                    On entry, specifies the number of rows in v.
+//             v     (input/output) double precision array of length nrow.
 //                    On entry, specifies the vector to be orthogonalized. 
-//             y     (output) double precision array of length nrow.
 //                    On exit, the orthogonalized vector.
-//                    x and y may overlap.
+//         normDiff  (optional) Returns the Euclidean norm of the change in v.
 //
 // info    (input) pointer to the structure trl_info_
 //          On entry, points to the data structure to store the information
@@ -111,9 +110,9 @@ void trlan(trl_matvec op, trl_uo user_ortho, trl_info * info, int nrow, int mev,
 // lwrk    (optional) integer
 //          On entry, specifies, the size of WRK.  When both WRK and LWRK are
 //          present, then LWRK should correctly indicate the size of WRK. If WRK
-//          is present by not LWRK, the size of WRK is assumed to be MEV which is
-//          only enough to store the residual norms on exit.  If WRK is not
-//          present, LWRK is not used even if it is present.
+//          is present but not LWRK, the size of WRK is assumed to be MEV 
+//          which is only enough to store the residual norms on exit.  
+//          If WRK is not present, LWRK is not used even if it is present.
 //          (lde >= nrow).
 //
 // wrk     (optional) workspace

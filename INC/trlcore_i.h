@@ -669,7 +669,7 @@ void trl_ritz_vectors(int nrow, int lck, int ny, double *yy, int ldy,
 int trl_cgs(trl_info * info, trl_uo user_ortho, int nrow,
             double *v1, int ld1, int m1,
             double *v2, int ld2, int m2, double *rr, double *rnrm,
-            double *alpha, int *north, double *wrk);
+            int *north, double *wrk);
 /*
 // Purpose
 // =======

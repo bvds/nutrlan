@@ -19,5 +19,3 @@ clean:
 # on seaborg, replace $(CC) with $(MPICC)
 .c.o:
 	$(CC) $(INC) -c $(OPT) $< $(DEBUG) $(CFLAGS)
-
-

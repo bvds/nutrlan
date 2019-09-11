@@ -673,16 +673,15 @@ void log_error_state(trl_info * info, int kept, int j1, int j2, int jnd,
 //             ldy   (input) Integer
 //                    On entry, specifies the leading dimension of yout.
 //
-// user_ortho (input) Pointer to function that provides additional
+// user_ortho (input) Pointer to a function that provides additional
 //          re-orthogonalization.  For no function, set to NULL.
-//          void user_ortho(nrow, x, y)
+//          void user_ortho(nrow, v, normDiff)
 //             nrow  (input) Integer
-//                    On entry, specifies the number of rows in x.
-//             x     (input) double precision array of length nrow.
+//                    On entry, specifies the number of rows in v.
+//             v     (input/output) double precision array of length nrow.
 //                    On entry, specifies the vector to be orthogonalized. 
-//             y     (output) double precision array of length nrow.
 //                    On exit, the orthogonalized vector.
-//                    x and y may overlap.
+//         normDiff  (optional) Returns the Euclidean norm of the change in v.
 //
 // info    (input) Pointer to structure trl_info_
 //          On entry, points to the current TRL_INFO.
@@ -1554,17 +1553,18 @@ void trl_smooth_rr(int n, double *rr)
     // .. local scalars ..
     */
     int i;
+    double tmp, rr1, rr2;
     /*
     // ..
     // .. executable statements ..
     */
     if (n <= 0)
 	return;
-    double rr1 = rr[0], rr2;
+    rr1 = rr[0];
     rr2 = rr1;
     rr[0] = 2 * rr[0] + rr[2] + rr[n - 1];
     for (i = 1; i < n - 1; i++) {
-	double tmp = rr[i];
+	tmp = rr[i];
 	rr[i] = 2 * rr[i] + rr[i + 1] + rr2;
 	rr2 = tmp;
     }
@@ -1638,7 +1638,7 @@ void trl_initial_guess(int nrow,  trl_uo user_ortho, double *evec, int lde, int 
     // local variable
     //
     int i, j, k, nran, north;
-    double tmp, rnrm;
+    double rnrm, normr2;
     clock_t ii, jj;
     char file[STRING_LEN];
     //
@@ -1709,14 +1709,13 @@ void trl_initial_guess(int nrow,  trl_uo user_ortho, double *evec, int lde, int 
 	*j1 = info->nec;
 	*j2 = 0;
     }
-    tmp = 0.0;
     // make sure the norm of the next vector can be computed
-    wrk[0] = trl_ddot(nrow, &evec[j * lde], c__1, &evec[j * lde], c__1);
-    trl_g_sum(info->mpicom, 1, &wrk[0], &wrk[1]);
+    normr2 = trl_ddot(nrow, &evec[j * lde], c__1, &evec[j * lde], c__1);
+    trl_g_sum(info->mpicom, 1, &normr2, wrk);
     info->flop = info->flop + nrow + nrow;
-    if (wrk[0] >= DBL_MIN && wrk[0] <= DBL_MAX) {
+    if (normr2 >= DBL_MIN && normr2 <= DBL_MAX) {
 	// set rnrm to let trl_CGS normalize evec(1:nrow, j)
-	rnrm = sqrt(wrk[0]);
+	rnrm = sqrt(normr2);
     } else {
 	for (i = 0; i < nrow; i++) {
 	    evec[j * lde + i] = drand48();
@@ -1729,19 +1728,18 @@ void trl_initial_guess(int nrow,  trl_uo user_ortho, double *evec, int lde, int 
     // orthogonalize initial guess against all existing vectors
     //
     i = 0;
-    tmp = 1.0;
     nran = info->nrand;
     north = info->north;
     if (*j1 < mev) {
 	info->stat = trl_cgs(info, user_ortho, nrow, evec, lde, *j1, base, ldb, 0,
-			     &evec[(*j1) * lde], &rnrm, &tmp, &i, wrk);
+			     &evec[(*j1) * lde], &rnrm, &i, wrk);
     } else if (*j2 <= 0) {
 	info->stat = trl_cgs(info, user_ortho, nrow, evec, lde, *j1, evec, lde, 0,
-			     base, &rnrm, &tmp, &i, wrk);
+			     base, &rnrm, &i, wrk);
 
     } else {
 	info->stat = trl_cgs(info, user_ortho, nrow, evec, lde, *j1, base, ldb, *j2,
-			     &base[(*j2) * ldb], &rnrm, &tmp, &i, wrk);
+			     &base[(*j2) * ldb], &rnrm, &i, wrk);
     }
     info->flop =
 	info->flop + 4 * nrow * ((info->north - north) * (*j1 + *j2) +
@@ -1786,16 +1784,15 @@ void trl_orth(int nrow, trl_uo user_ortho, double *v1, int ld1, int m1,
     // nrow   (input) Integer
     //         On entry, specifies the number of rows in eigenvectors.
     //
-    // user_ortho (input) Pointer to function that provides additional
-    //         re-orthogonalization.  For no function, set to NULL.
-    //         void user_ortho(nrow, x, y)
+    // user_ortho (input) Pointer to a function that provides additional
+    //          re-orthogonalization.  For no function, set to NULL.
+    //          void user_ortho(nrow, v, normDiff)
     //             nrow  (input) Integer
-    //                    On entry, specifies the number of rows in x.
-    //             x     (input) double precision array of length nrow.
+    //                    On entry, specifies the number of rows in v.
+    //             v     (input/output) double precision array of length nrow.
     //                    On entry, specifies the vector to be orthogonalized. 
-    //             y     (output) double precision array of length nrow.
     //                    On exit, the orthogonalized vector.
-    //                    x and y may overlap.
+    //         normDiff  (optional) Returns the 2-norm of the change in v.
     //
     // v1     (input) double precision array (ld1,m1)
     //         On entry, contains the first part of Lanczos basis computed.
@@ -1816,8 +1813,8 @@ void trl_orth(int nrow, trl_uo user_ortho, double *v1, int ld1, int m1,
     //         On entry, specifies the number of Lanczos basis in v2.
     //
     // rr     (input/output) double precision array (nrow)
-    //         On entry, contains the new Lanczos basis computed.
-    //         On exit, contains the next Lanczos basis computed after the orthogonalization.
+    //         On entry, contains the new Lanczos vector computed.
+    //         On exit, contains the next Lanczos vector computed after the orthogonalization.
     //
     // kept   (input) Integer
     //         On etnry, specifies the number of Ritz vectors kept.
@@ -1846,7 +1843,7 @@ void trl_orth(int nrow, trl_uo user_ortho, double *v1, int ld1, int m1,
     // .. local variables ..
     double d__1;
     int i, usecgs, jnd, jm1, no, nr;
-    double tmp;
+    double tmp, normrr2, normDiff2;
     double *qa, *qb;
     //
     // ..
@@ -1865,13 +1862,13 @@ void trl_orth(int nrow, trl_uo user_ortho, double *v1, int ld1, int m1,
     //
     // compute the norm of the vector RR
     //
-    wrk[0] = trl_ddot(nrow, rr, c__1, rr, c__1);
-    trl_g_sum(info->mpicom, 1, &wrk[0], &wrk[1]);
-    if (!(wrk[0] >= zero) || !(wrk[0] <= DBL_MAX)) {
+    normrr2 = trl_ddot(nrow, rr, c__1, rr, c__1);
+    trl_g_sum(info->mpicom, 1, &normrr2, wrk);
+    if (!(normrr2 >= zero) || !(normrr2 <= DBL_MAX)) {
 	info->stat = -102;
 	return;
     }
-    beta[jnd - 1] = sqrt(wrk[0]);
+    beta[jnd - 1] = sqrt(normrr2);
     tmp = alpha[jnd - 1] * alpha[jnd - 1];
     if (jm1 > kept) {
 	tmp += (beta[jm1 - 1] * beta[jm1 - 1]);
@@ -1884,8 +1881,11 @@ void trl_orth(int nrow, trl_uo user_ortho, double *v1, int ld1, int m1,
     if (jm1 == kept) {
 	usecgs = 1;
     } else if (jnd >= info->ntot) {
+        /* We have spanned the space, so norm(rr) should be zero.
+           One could test that norm(rr) is small and otherwise 
+           raise an error condition? */
 	usecgs = 0;
-    } else if (DBL_EPSILON * wrk[0] >= tmp) {
+    } else if (DBL_EPSILON * normrr2 >= tmp) {
 	double anorm = 0.0;
 	for (i = 0; i < jnd; ++i) {
 	    d__1 = fabs(alpha[i]) + fabs(beta[i]);
@@ -1903,9 +1903,8 @@ void trl_orth(int nrow, trl_uo user_ortho, double *v1, int ld1, int m1,
 	// perform global re-orthogonalization
 	nr = info->nrand;
 	no = info->north;
-	info->stat = trl_cgs(info, user_ortho, nrow, v1, ld1, m1, v2, ld2, m2, rr,
-			     &beta[jnd - 1], &alpha[jnd - 1],
-			     &(info->north), wrk);
+	info->stat = trl_cgs(info, user_ortho, nrow, v1, ld1, m1, v2, ld2, m2,
+                             rr, &beta[jnd - 1], &(info->north), wrk);
 	info->flop =
 	    info->flop + 4 * nrow * ((info->north - no) * jnd +
 				     info->nrand - nr) + nrow;
@@ -1936,7 +1935,7 @@ void trl_orth(int nrow, trl_uo user_ortho, double *v1, int ld1, int m1,
         // User-defined re-orthogonalization
         // What about normalization?
         if (user_ortho != NULL) {
-            user_ortho(nrow, rr, rr);
+            user_ortho(nrow, rr, NULL);
         }
 	tmp = one / beta[jnd - 1];
 	trl_dscal(nrow, tmp, rr, c__1);
@@ -1948,15 +1947,15 @@ void trl_orth(int nrow, trl_uo user_ortho, double *v1, int ld1, int m1,
 	} else {
 	    qa = v2;
 	}
-	wrk[0] = trl_ddot(nrow, qa, c__1, rr, c__1);
-	trl_g_sum(info->mpicom, 1, &wrk[0], &wrk[1]);
-	alpha[jnd - 1] = alpha[jnd - 1] + wrk[0];
-	d__1 = -wrk[0];
+	normDiff2 = trl_ddot(nrow, qa, c__1, rr, c__1);
+	trl_g_sum(info->mpicom, 1, &normDiff2, wrk);
+	alpha[jnd - 1] = alpha[jnd - 1] + normDiff2;
+	d__1 = -normDiff2;
 	trl_daxpy(nrow, d__1, qa, c__1, rr, c__1);
         // User-defined re-orthogonalization
         // What about normalization?
         if (user_ortho != NULL) {
-            user_ortho(nrow, rr, rr);
+            user_ortho(nrow, rr, NULL);
         }
 	tmp = one / beta[jnd - 1];
 	trl_dscal(nrow, tmp, rr, c__1);
@@ -2914,7 +2913,7 @@ void trl_ritz_vectors(int nrow, int lck, int ny, double *yy, int ldy,
 int trl_cgs(trl_info * info, trl_uo user_ortho, int nrow,
             double *v1, int ld1, int m1,
 	    double *v2, int ld2, int m2, double *rr, double *rnrm,
-	    double *alpha, int *north, double *wrk)
+	    int *north, double *wrk)
 {
     //
     // Purpose
@@ -2925,16 +2924,15 @@ int trl_cgs(trl_info * info, trl_uo user_ortho, int nrow,
     // info   (input) Pointer to structure trl_info_
     //         On entry, points to the current TRL_INFO.
     //
-    // user_ortho (input) Pointer to function that provides additional
-    //         re-orthogonalization.  For no function, set to NULL.
-    //         void user_ortho(nrow, x, y)
+    // user_ortho (input) Pointer to a function that provides additional
+    //          re-orthogonalization.  For no function, set to NULL.
+    //          void user_ortho(nrow, v, normDiff)
     //             nrow  (input) Integer
-    //                    On entry, specifies the number of rows in x.
-    //             x     (input) double precision array of length nrow.
+    //                    On entry, specifies the number of rows in v.
+    //             v     (input/output) double precision array of length nrow.
     //                    On entry, specifies the vector to be orthogonalized. 
-    //             y     (output) double precision array of length nrow.
     //                    On exit, the orthogonalized vector.
-    //                    x and y may overlap.
+    //         normDiff  (optional) Returns the 2-norm of the change in v.
     //
     // nrow   (input) Integer
     //         On entry, specifies the number of rows in eigenvectors.
@@ -2958,18 +2956,16 @@ int trl_cgs(trl_info * info, trl_uo user_ortho, int nrow,
     //         On entry, specifies the number of Lanczos basis in v2.
     //
     // rr     (input/output) double precision array (nrow)
-    //         On entry, contains the new Lanczos basis computed.
-    //         On exit, contains the next Lanczos basis computed after the orthogonalization.
+    //         On entry, contains the new Lanczos vector computed.
+    //         On exit, contains the next Lanczos vector computed after the orthogonalization.
     //
     // rnrm   (output) double precision
-    //         On entry, specifies the norm of the current Lanczos basis.
-    //         On exit, specifies the norm of the new Lanczos basis.
-    //
-    // alpha  (input/output) double precision array (m1+m2)
-    //         On entry, contains the alpha values, on exit, they are updated.
+    //         On exit, specifies the norm of the new Lanczos vector.
+    //         Zero when no independent vector was found.
     //
     // north  (output)
-    //         On exit, specifies the number of times the full-orthogonalization is applied.
+    //         On exit, specifies the number of times the
+    //         full-orthogonalization is applied.
     //
     // wrk    (workspace) complex array (m1+m2)
     //
@@ -2982,8 +2978,8 @@ int trl_cgs(trl_info * info, trl_uo user_ortho, int nrow,
     // ..
     // .. local variables ..
     double d__1;
-    int mpicom, myid, i, j, k, nold, irnd, cnt, ierr = 0;
-    double tmp, old_rnrm;
+    int mpicom, myid, i, k, nold, irnd, cnt;
+    double tmp, normrr2, normDiff, normDiff2;
     //
     // ..
     // .. executable statements ..
@@ -2994,7 +2990,6 @@ int trl_cgs(trl_info * info, trl_uo user_ortho, int nrow,
 	return -201;
     }
     irnd = 0;
-    ierr = 0;
     if (nold > 0) {
 	cnt = 0;
 	while (cnt <= maxorth) {
@@ -3020,118 +3015,106 @@ int trl_cgs(trl_info * info, trl_uo user_ortho, int nrow,
             // User-defined re-orthogonalization
             // Normalization performed below
             if (user_ortho != NULL) {
-                user_ortho(nrow, rr, rr);
+                user_ortho(nrow, rr, &normDiff);
             }
 
-	    /*
-	      if( irnd == 0) {
-	      tmp = (ld1*nold)*DBL_EPSILON*max(fabs(*alpha), *rnrm);
-	      if( fabs(wrk[nold-1]) > tmp && tmp > zero) {
-	      return -202;
-	      }
-	      *alpha = *alpha + wrk[nold-1];
-	      }
-	    */
 	    (*north)++;
-	    cnt = cnt + 1;
-	    tmp = trl_ddot(nold, wrk, one, wrk, one);
-	    wrk[0] = trl_ddot(nrow, rr, one, rr, one);
-	    trl_g_sum(mpicom, 1, wrk, &wrk[1]);
-	    *rnrm = sqrt(wrk[0]);
-	    old_rnrm = sqrt(wrk[0] + tmp);
-	    //
-	    // decisions about whether to re-orthogonalize is based on
-	    // relative size of tmp and wrk(1) (R norm square)
-	    //printf( "wrk[0]=%e tmp=%e\r\n",wrk[0],tmp );
-	    //if( wrk[0] > tmp) {
-	    if (DBL_EPSILON * wrk[0] > tmp) {
+	    cnt++;
+	    normDiff2 = trl_ddot(nold, wrk, one, wrk, one);
+	    normrr2 = trl_ddot(nrow, rr, one, rr, one);
+            if (user_ortho != NULL) {
+#if 0
+                printf("trl_cgs:  north=%i cnt=%i irnd= %i "
+                       "normDiff=%le normrr2=%le\n",
+                       *north, cnt, irnd, normDiff, normrr2);
+#endif
+                normDiff2 += normDiff*normDiff;
+            }
+	    trl_g_sum(mpicom, 1, &normrr2, wrk);
+	    *rnrm = sqrt(normrr2);
+	    /*
+              decisions about whether to re-orthogonalize is based on
+              relative size of normDiff2 and normrr2 (R norm squared)
+            */
+#if 0
+            printf( "normrr2=%e normDiff2=%e\n", normrr2, normDiff2 );
+#endif
+            /*
+              BvdS:  what is the justification for this?
+              Maybe see H. D. Simon. Analysis of the symmetric Lanczos 
+              algorithm with reorthogonalization methods. 
+              Linear Algebra Appl., 61:101–131, 1984. 
+            */
+	    if (DBL_EPSILON * normrr2 > normDiff2) {
 		// no need for more orthogonalization
-		cnt = maxorth + 1;
-		//            } else if( ((wrk[0] <= DBL_EPSILON*tmp && cnt > 1) ||
-		//                      !( wrk[0] > DBL_MIN)) && irnd < maxorth ) {
-		//
-		//            } else if( ((wrk[0] <= DBL_EPSILON*tmp && cnt > 1) ||
-		//                      !( wrk[0] > 100.0*DBL_EPSILON*DBL_EPSILON*info->ntot)) &&
-		//                      irnd < maxorth ) {
-	    } else if (((cnt > 1 && !
-			 (tmp <=
-			  info->ntot * DBL_EPSILON * DBL_EPSILON *
-			  (wrk[0] + tmp))) || !(wrk[0] > DBL_MIN))
-		       && irnd < maxorth) {
-		// the input vector is so nearly linear dependent on the
-		// existing vectors, we need to perturb it in order to
-		// generate a new vector that is orthogonal to the existing
-		// ones
-		// the perturbation is done in two stages:
-		// -- perturbing only one number
-		// -- call random_number to generate a whole random vector
+		break;
+	    } else if ((cnt > 1 &&  // first, re-apply the orthogonalization
+                        /*
+                          BvdS:  what is the justification for this?
+                        */
+                        (nold * DBL_EPSILON * DBL_EPSILON *
+                         (normrr2 + normDiff2) < normDiff2)) ||
+                       !(normrr2 > DBL_MIN)) {
+		/*
+                  The input vector is not linearly independent of
+                  the existing vectors.  This happens when we have 
+                  spanned the Krylov space of A.
+
+                  The first time this happens, we generate a random vector
+                  and orthogonalize with respect to the existing vectors.
+                  Since orthogonalization is expensive, we generate 
+                  an entirely new random vector.  
+
+                  If the existing vectors do not span the space, 
+                  then the set of random vectors that lie in that 
+                  subspace is measure zero.  Thus, if the random vector 
+                  doesn't work, then we have spanned the entire space.  
+                  In cases where user_ortho() was supplied, this can happen.
+                */
+                if(irnd > 0) {
+                    // We have already tried a random vector, give up.
+                    break;
+                }
+
 		cnt = 0;
 		irnd++;
 		info->nrand++;
-		if (irnd == 1 && *rnrm > 0.0
-		    && *rnrm > DBL_EPSILON * old_rnrm) {
-		    // old version:  modify only one element
-		    // new version:  modify (nrow * epsilon * rnrm / old_rnrm ) elements
-		    tmp = drand48();
-		    i = (int) (nrow * tmp);
-		    k = i +
-			(int) (max
-			       (1.0,
-				(nrow * DBL_EPSILON * old_rnrm / *rnrm)));
-		    for (j = i; j < k; j++) {
-			tmp = drand48();
-			while (fabs(tmp - 0.5) <= DBL_EPSILON) {
-			    tmp = drand48();
-			}
-			rr[j] += (*rnrm) * (tmp - 0.5);
-		    }
-		} else {
-		    // fill with random numbers produced by intrinsic function
-		    for (i = 0; i <= myid; i++) {
-			tmp = drand48();
-		    }
-		    i = (int) (nrow * tmp);
-		    tmp = drand48();
-		    j = (int) (nrow * tmp);
-		    if (i < j) {
-			for (k = i; k <= j; k++) {
-			    rr[k] = drand48();
-			}
-		    } else if (i > j) {
-			for (k = j; k <= i; k++) {
-			    rr[k] = drand48();
-			}
-		    } else {
-			for (k = 0; k < nrow; k++) {
-			    rr[k] = drand48();
-			}
-		    }
-		}
-		//rr = rr + rr + Cshift(rr, 1) + Cshift(rr, -1)
+                // fill with random numbers produced by intrinsic function
+                for (i = 0; i < myid; i++) {
+                    drand48();
+                }
+                for (k = 0; k < nrow; k++) {
+                    rr[k] = drand48();
+                }
 		trl_smooth_rr(nrow, rr);
 	    }
-	}
+	}  // while loop
 
-	// failed to reduce the dot-products between the new vector
-	// and the old vectors to small number -- usually an indication of
-	// problem with orthogonality of the old vectors
-	if (!(wrk[0] >= tmp))
-	    ierr = - 203;
+	/* failed to reduce the dot-products between the new vector
+           and the old vectors to small number -- usually an indication of
+           problem with orthogonality of the old vectors.
+
+           Don't apply if user_op has been supplied.
+           In that case, it is possible for no independent vector
+           to exist.
+        */
+	if (normrr2 < normDiff2 && user_ortho == NULL) {
+	    return -203;
+        }
     }
     //
     // normalization
     //
-    if (ierr == 0) {
-	if (*rnrm > DBL_MIN) {
-	    tmp = one / *rnrm;
-	    trl_dscal(nrow, tmp, rr, one);
-	} else {
-	    return -204;
-	}
+    if (*rnrm > DBL_MIN) {
+        tmp = one / *rnrm;
+        trl_dscal(nrow, tmp, rr, one);
+    } else {
+        return -204;
     }
-    if (irnd > 0)
+    if (irnd > 0) {
 	*rnrm = zero;
-    return ierr;
+    }
+    return 0;
     //
     // .. end of trl_cgs ..
     //
