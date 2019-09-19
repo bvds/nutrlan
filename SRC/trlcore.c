@@ -2674,7 +2674,7 @@ void trl_get_tvec_a(int nd, int kept, double *alpha, double *beta,
 
 ////
 void trl_set_locking(int jnd, int nlam, double *lambda, double *res,
-		     double *yy, int anrm, int *locked)
+		     double *yy, double anrm, int *locked)
 {
     //
     // Purpose

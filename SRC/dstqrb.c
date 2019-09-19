@@ -12,7 +12,7 @@
 #include "trlan_i.h"
 #include "dstqrb_i.h"
 
-inline double d_sign(doublereal * a, doublereal * b)
+static inline double d_sign(doublereal * a, doublereal * b)
 {
     double x;
     x = (*a >= 0 ? *a : -*a);

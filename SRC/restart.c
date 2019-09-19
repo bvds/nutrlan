@@ -111,7 +111,7 @@ static double trl_min_gap_ratio_(trl_info * info, int nd, int tind, double *res)
 
 //
 ////
-inline double gap_ratio_(int i, int j, int tind, double *lambda)
+static inline double gap_ratio_(int i, int j, int tind, double *lambda)
 {
     // Internal functio used in trl_restart_fixed_
     return (lambda[i] - lambda[tind]) / (lambda[j] - lambda[tind]);
