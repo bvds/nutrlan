@@ -2978,13 +2978,12 @@ int trl_cgs(trl_info * info, trl_uo user_ortho, int nrow,
     // ..
     // .. local variables ..
     double d__1;
-    int mpicom, myid, i, k, nold, irnd, cnt;
+    int mpicom, k, nold, irnd, cnt;
     double tmp, normrr2, normDiff, normDiff2;
     //
     // ..
     // .. executable statements ..
     mpicom = info->mpicom;
-    myid = info->my_pe;
     nold = m1 + m2;
     if (ld1 < nrow || (ld2 < nrow && m2 > 0)) {
 	return -201;
@@ -3079,10 +3078,8 @@ int trl_cgs(trl_info * info, trl_uo user_ortho, int nrow,
 		cnt = 0;
 		irnd++;
 		info->nrand++;
-                // fill with random numbers produced by intrinsic function
-                for (i = 0; i < myid; i++) {
-                    drand48();
-                }
+                /* The seed (set in the intial vector call above) 
+                   is different for each processor. */
                 for (k = 0; k < nrow; k++) {
                     rr[k] = drand48();
                 }
