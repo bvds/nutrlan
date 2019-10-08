@@ -20,6 +20,7 @@
 # nuTRLan home directory
 #  TOP = ${PWD}
   NUTRLAN = $(TOP)/libnutrlan.a
+  PNUTRLAN = $(TOP)/libnutrlan_mpi.a
 #
 # External directories
 #  DIR_CLAPACK = /root/ichi/ricpack-1.0/CLAPACK

@@ -13,7 +13,7 @@ include ../Make.inc
 #
 # a simple example (parallel version)
   psimple : psimple.o
-	$(PLOADER) $(OPT) psimple.o $(NUTRLAN) $(PLIB) -o psimple
+	$(PLOADER) $(OPT) psimple.o $(PNUTRLAN) $(PLIB) -o psimple
 
   psimple.o : psimple.c
 	$(PLOADER) $(OPT) psimple.c -c $(INC) -o psimple.o
@@ -51,14 +51,14 @@ include ../Make.inc
 #
 # test ctrlan (parallel version)
   test_ptrlan : test_ptrlan.o 
-	$(PLOADER) $(OPT) test_ptrlan.o $(NUTRLAN) $(PLIB) -o test_ptrlan
+	$(PLOADER) $(OPT) test_ptrlan.o $(PNUTRLAN) $(PLIB) -o test_ptrlan
 
   test_ptrlan.o : test_ptrlan.c
 	$(PLOADER) $(OPT) test_ptrlan.c -c $(INC) -o test_ptrlan.o
 #
 # test ztrlan (parallel version)
   test_pztrlan : test_pztrlan.o
-	$(PLOADER) $(OPT) test_pztrlan.o $(NUTRLAN) $(PLIB) -o test_pztrlan
+	$(PLOADER) $(OPT) test_pztrlan.o $(PNUTRLAN) $(PLIB) -o test_pztrlan
 
   test_pztrlan.o : test_pztrlan.c
 	$(PLOADER) $(OPT) test_pztrlan.c -c $(INC) -o test_pztrlan.o

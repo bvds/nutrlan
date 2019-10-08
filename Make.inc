@@ -20,12 +20,13 @@
 # nuTRLan home directory
 #  TOP    = ${PWD}
   NUTRLAN = $(TOP)/libnutrlan.a
+  PNUTRLAN = $(TOP)/libnutrlan_mpi.a
 #
 # External directories
   DIR_CLAPACK = 
 #
 # External libraries
-  LIB_DIR =
+  LIB_DIR = 
   MATH    = -lm
   BLAS    = -lblas
   LAPACK  = -llapack
@@ -35,8 +36,10 @@
   PLIB    = $(LIB) -lmpi 
 #
 # Include files
-  INC_CLAPACK = 
-  INC_NUTRLAN  = -I$(TOP)/INC
+  INC_CLAPACK =
+#
+#   /usr/include/mpich or /usr/include/openmpi
+  INC_NUTRLAN  = -I$(TOP)/INC -I/usr/include/mpi
   INC         = $(INC_CLAPACK) $(INC_NUTRLAN)
 #
 # Object files

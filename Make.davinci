@@ -21,6 +21,7 @@
 # nuTRLan home directory
 #  TOP    = ${PWD}
   NUTRLAN = $(TOP)/libnutrlan.a
+  PNUTRLAN = $(TOP)/libnutrlan_mpi.a
 #
 # External directories
   DIR_CLAPACK = 

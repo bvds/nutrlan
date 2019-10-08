@@ -5,7 +5,7 @@ lib_serial: $(OBJ) $(OBJ_SERIAL)
 	ar -cru $(NUTRLAN) $(OBJ) $(OBJ_SERIAL)
 
 lib_parallel: $(OBJ) $(OBJ_PARALLEL)
-	ar -cru $(NUTRLAN) $(OBJ) $(OBJ_PARALLEL)
+	ar -cru $(PNUTRLAN) $(OBJ) $(OBJ_PARALLEL)
 
 fortran: $(FOBJ) 
 	ar -cru $(NUTRLAN) $(FOBJ) 

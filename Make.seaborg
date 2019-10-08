@@ -23,6 +23,7 @@
 # nuTRLan home directory
 #  TOP = ${PWD}
   NUTRLAN = $(TOP)/libnutrlan.a
+  PNUTRLAN = $(TOP)/libnutrlan_mpi.a
 #
 # External directories
 #  DIR_CLAPACK = /home2/u14/yamazaki/src_so_sept02/nutrlan/CLAPACK
