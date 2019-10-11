@@ -455,7 +455,7 @@ void write_checkpoint(trl_info * info, char *title, int nrow,
 	info->clk_out = info->clk_out + ((info->clk_max - c1) + c2);
     }
     info->wrds_out = info->wrds_out + jnd * (nrow + nrow + 2) + nrow + 2;
-    info->stat = trl_sync_flag(info->mpicom, ii);
+    info->stat = trl_sync_flag(info->mpicomp, ii);
     /*
     //  .. end of print final_state_ ..
     */
@@ -946,7 +946,7 @@ trlanczos(trl_matvec op, trl_uo user_ortho, trl_info *info, int nrow, int mev,
 	// computed the next alpha = qa' * A * qa
 	*/
 	alpha[jnd - 1] = trl_ddot(nrow, qa, c__1, rr, c__1);
-	trl_g_sum(info->mpicom, 1, &alpha[jnd - 1], wrk2);
+	trl_g_sum(info->mpicomp, 1, &alpha[jnd - 1], wrk2);
 	/*
 	// Perform the Lanczos orthogonalization.
 	// rr = rr - sum_{i=1,...j1} 
@@ -1105,7 +1105,7 @@ trlanczos(trl_matvec op, trl_uo user_ortho, trl_info *info, int nrow, int mev,
 	    //
 	    /* compute alpha(jnd) = qa' * A * qa */
 	    alpha[jnd - 1] = trl_ddot(nrow, qa, c__1, rr, c__1);
-	    trl_g_sum(info->mpicom, 1, &alpha[jnd - 1], wrk2);
+	    trl_g_sum(info->mpicomp, 1, &alpha[jnd - 1], wrk2);
 	    /*
 	    // the Lanczos orthogonalization (three-term recurrence).
 	    //   rr = rr - alpha(jnd)*qa - beta(jnd-1)*qb
@@ -1666,7 +1666,7 @@ void trl_initial_guess(int nrow,  trl_uo user_ortho, double *evec, int lde, int 
 				 mev - info->nec, j1, base, ldb, nbas, j2,
 				 (mev + nbas - 1 - j), &alpha[j],
 				 (mev + nbas - 1 - j), &beta[j]);
-	info->stat = trl_sync_flag(info->mpicom, i);
+	info->stat = trl_sync_flag(info->mpicomp, i);
 	jj = clock();
 	if (jj > ii) {
 	    info->clk_in = jj - ii;
@@ -1711,7 +1711,7 @@ void trl_initial_guess(int nrow,  trl_uo user_ortho, double *evec, int lde, int 
     }
     // make sure the norm of the next vector can be computed
     normr2 = trl_ddot(nrow, &evec[j * lde], c__1, &evec[j * lde], c__1);
-    trl_g_sum(info->mpicom, 1, &normr2, wrk);
+    trl_g_sum(info->mpicomp, 1, &normr2, wrk);
     info->flop = info->flop + nrow + nrow;
     if (normr2 >= DBL_MIN && normr2 <= DBL_MAX) {
 	// set rnrm to let trl_CGS normalize evec(1:nrow, j)
@@ -1863,7 +1863,7 @@ void trl_orth(int nrow, trl_uo user_ortho, double *v1, int ld1, int m1,
     // compute the norm of the vector RR
     //
     normrr2 = trl_ddot(nrow, rr, c__1, rr, c__1);
-    trl_g_sum(info->mpicom, 1, &normrr2, wrk);
+    trl_g_sum(info->mpicomp, 1, &normrr2, wrk);
     if (!(normrr2 >= zero) || !(normrr2 <= DBL_MAX)) {
 	info->stat = -102;
 	return;
@@ -1926,7 +1926,7 @@ void trl_orth(int nrow, trl_uo user_ortho, double *v1, int ld1, int m1,
 	    wrk[0] = wrk[0] + qa[i] * rr[i];
 	    wrk[1] = wrk[1] + qb[i] * rr[i];
 	}
-	trl_g_sum(info->mpicom, 2, &wrk[0], &wrk[2]);
+	trl_g_sum(info->mpicomp, 2, &wrk[0], &wrk[2]);
 	alpha[jnd - 1] = alpha[jnd - 1] + wrk[0];
 	d__1 = -wrk[0];
 	trl_daxpy(nrow, d__1, qa, c__1, rr, c__1);
@@ -1948,7 +1948,7 @@ void trl_orth(int nrow, trl_uo user_ortho, double *v1, int ld1, int m1,
 	    qa = v2;
 	}
 	normDiff2 = trl_ddot(nrow, qa, c__1, rr, c__1);
-	trl_g_sum(info->mpicom, 1, &normDiff2, wrk);
+	trl_g_sum(info->mpicomp, 1, &normDiff2, wrk);
 	alpha[jnd - 1] = alpha[jnd - 1] + normDiff2;
 	d__1 = -normDiff2;
 	trl_daxpy(nrow, d__1, qa, c__1, rr, c__1);
@@ -2978,12 +2978,11 @@ int trl_cgs(trl_info * info, trl_uo user_ortho, int nrow,
     // ..
     // .. local variables ..
     double d__1;
-    int mpicom, k, nold, irnd, cnt;
+    int k, nold, irnd, cnt;
     double tmp, normrr2, normDiff, normDiff2;
     //
     // ..
     // .. executable statements ..
-    mpicom = info->mpicom;
     nold = m1 + m2;
     if (ld1 < nrow || (ld2 < nrow && m2 > 0)) {
 	return -201;
@@ -2993,7 +2992,7 @@ int trl_cgs(trl_info * info, trl_uo user_ortho, int nrow,
 	cnt = 0;
 	while (cnt <= maxorth) {
 	    // compute [v1 v2]'*rr=wrk
-	    trl_g_dot_(mpicom, nrow, v1, ld1, m1, v2, ld2, m2, rr, wrk);
+	    trl_g_dot_(info->mpicomp, nrow, v1, ld1, m1, v2, ld2, m2, rr, wrk);
 	    if (m1 > 1) {
 		d__1 = -one;
 		trl_dgemv(&notrans, nrow, m1, d__1, v1, ld1, wrk, one,
@@ -3029,7 +3028,7 @@ int trl_cgs(trl_info * info, trl_uo user_ortho, int nrow,
 #endif
                 normDiff2 += normDiff*normDiff;
             }
-	    trl_g_sum(mpicom, 1, &normrr2, wrk);
+	    trl_g_sum(info->mpicomp, 1, &normrr2, wrk);
 	    *rnrm = sqrt(normrr2);
 	    /*
               decisions about whether to re-orthogonalize is based on

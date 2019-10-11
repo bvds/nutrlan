@@ -9,9 +9,7 @@
   LOADER  = cc
   PLOADER = mpicc
 #
-# Debuging
-  DEBUG =
-  OPT = -DBLAS -O3
+  CFLAGS = -DBLAS -O3
 #
 #
 #

@@ -95,8 +95,8 @@ typedef struct strct_trl_info {
     double tol;
 
     /* specification of resource allowed to use by TRLAN */
-    /** The MPI communicator.  */
-    int mpicom;
+    /** Pointer to the MPI communicator.  */
+    void *mpicomp;
     /** The maximum basis size to be used.  */
     int maxlan;
     /** The actual basis size currently. This value may be smaller than
@@ -387,14 +387,14 @@ void trl_check_ritz(trl_matvec op,
            of matrix-vector multiplication allowed.  By default, mxmv is
            set to be info%ntot*info%ned.
 
-@arg mpicom   (input) [integer]
+@arg mpicomp  (input) pointer to MPI_Comm
            It specifites the MPI communicator.  If MPI is used, this has to
            be a valid MPI communicator.  In the sequential case, this
            parameter is never really used (even though passed around).
 */
 void trl_init_info(trl_info *info, int nrow, int mxlan, int lohi,
 		   int ned, double tol, int restart, int maxmv,
-		   int mpicom);
+		   void *mpicomp);
 
 /**
  Set the (minimum) basis size for the restart schemes 7 and 8, i.e., the

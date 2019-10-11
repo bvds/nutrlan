@@ -425,7 +425,7 @@ void zwrite_checkpoint(trl_info * info, char *title, int nrow,
 	info->clk_out = info->clk_out + ((info->clk_max - c1) + c2);
     }
     info->wrds_out = info->wrds_out + jnd * (nrow + nrow + 2) + nrow + 2;
-    info->stat = trl_sync_flag(info->mpicom, ii);
+    info->stat = trl_sync_flag(info->mpicomp, ii);
 //
 //  .. end of zwrite_checkpoint ..
 //
@@ -714,7 +714,7 @@ ztrlanczos(ztrl_matvec op, trl_info * info, int nrow, int mev, double *eval,
 	//printf( "computing alpha (%d)\n",nrow );
 	trl_zdotc(&z__1, nrow, qa, c__1, rr, c__1);
 	alpha[jnd - 1] = z__1.r;
-	trl_g_sum(info->mpicom, 1, &alpha[jnd - 1], dwrk);
+	trl_g_sum(info->mpicomp, 1, &alpha[jnd - 1], dwrk);
 	//
 	// Perform the Lanczos orthogonalization.
 	// rr = rr - sum_{i=1,...j1} beta(i)*evec(:,i) - sum_{1,...,j2} beta(j1+i)*base(:,i)
@@ -874,7 +874,7 @@ ztrlanczos(ztrl_matvec op, trl_info * info, int nrow, int mev, double *eval,
 	    // compute alpha(jnd) = qa' * A * qa
 	    trl_zdotc(&z__1, nrow, qa, c__1, rr, c__1);
 	    alpha[jnd - 1] = z__1.r;
-	    trl_g_sum(info->mpicom, 1, &alpha[jnd - 1], dwrk);
+	    trl_g_sum(info->mpicomp, 1, &alpha[jnd - 1], dwrk);
 	    //
 	    // the Lanczos orthogonalization (three-term recurrence).
 	    //   rr = rr - alpha(jnd)*qa - beta(jnd-1)*qb
@@ -1431,7 +1431,7 @@ void ztrl_initial_guess(int nrow, trl_dcomplex * evec, int lde, int mev,
 				  mev - info->nec, j1, base, ldb, nbas, j2,
 				  (mev + nbas - 1 - j), &alpha[j],
 				  (mev + nbas - 1 - j), &beta[j]);
-	info->stat = trl_sync_flag(info->mpicom, i);
+	info->stat = trl_sync_flag(info->mpicomp, i);
 
 #if TUNED < 2
 	jj = clock();
@@ -1495,7 +1495,7 @@ void ztrl_initial_guess(int nrow, trl_dcomplex * evec, int lde, int mev,
     // make sure the norm of the next vector can be computed
     //zdotc_( wrk,&nrow,&evec[j*nrow],&c__1,&evec[j*nrow],&c__1 );
     trl_zdotc(wrk, nrow, &evec[j * lde], c__1, &evec[j * lde], c__1);
-    trl_g_sum(info->mpicom, 1, &(wrk[0].r), &(wrk[1].r));
+    trl_g_sum(info->mpicomp, 1, &(wrk[0].r), &(wrk[1].r));
 
 #if TUNED < 2
     info->flop = info->flop + nrow + nrow;
@@ -1838,7 +1838,7 @@ void ztrl_orth(int nrow, trl_dcomplex * v1, int ld1, int m1,
 // compute the norm of the vector RR
 //
     trl_zdotc(&(wrk[0]), nrow, rr, c__1, rr, c__1);
-    trl_g_sum(info->mpicom, 1, &(wrk[0].r), &(wrk[1].r));
+    trl_g_sum(info->mpicomp, 1, &(wrk[0].r), &(wrk[1].r));
 
     if (!(wrk[0].r >= zero) || !(wrk[0].r <= DBL_MAX)) {
 	info->stat = -102;
@@ -1914,7 +1914,7 @@ void ztrl_orth(int nrow, trl_dcomplex * v1, int ld1, int m1,
 	    wrk[1].r += (qb[i].r * rr[i].r) + (qb[i].i * rr[i].i);
 	    wrk[1].i += (qb[i].r * rr[i].i) - (qb[i].i * rr[i].r);
 	}
-	ztrl_g_sum(info->mpicom, 2, &wrk[0], &wrk[2]);
+	ztrl_g_sum(info->mpicomp, 2, &wrk[0], &wrk[2]);
 //   ** updating alpha **
 //     alpha[jnd-1] += wrk[0];
 	alpha[jnd - 1] += wrk[0].r;
@@ -1929,7 +1929,7 @@ void ztrl_orth(int nrow, trl_dcomplex * v1, int ld1, int m1,
 	d__1 = one / beta[jnd - 1];
 	trl_zdscal(nrow, d__1, rr, c__1);
 	//if (info->verbose > -1) {
-	//  ztrl_g_dot_(info->mpicom, nrow, v1, ld1, m1, v2, ld2, m2, rr, wrk);
+	//  ztrl_g_dot_(info->mpicomp, nrow, v1, ld1, m1, v2, ld2, m2, rr, wrk);
 	//  printf("Orthogonality level of v(%d) (after local reothogonalization):\n", jnd+1);
 	//}
 
@@ -1945,7 +1945,7 @@ void ztrl_orth(int nrow, trl_dcomplex * v1, int ld1, int m1,
 	    qa = v2;
 	}
 	trl_zdotc(wrk, nrow, qa, c__1, rr, c__1);
-	ztrl_g_sum(info->mpicom, 1, &wrk[0], &wrk[1]);
+	ztrl_g_sum(info->mpicomp, 1, &wrk[0], &wrk[1]);
 //     alpha[jnd-1] += wrk[0]..;
 	alpha[jnd - 1] += wrk[0].r;
 
@@ -2036,13 +2036,12 @@ int ztrl_cgs(trl_info * info, int nrow, trl_dcomplex * v1, int ld1,
 // ..
 // .. local variables ..
     trl_dcomplex z__1, z__2;
-    int i, j, k, mpicom, myid, nold, irnd, cnt, ierr = 0;
+    int i, j, k, myid, nold, irnd, cnt, ierr = 0;
     double tmp, old_rnrm, d__1;
     trl_dcomplex tmp2;
 //
 // ..
 // .. executable statements ..
-    mpicom = info->mpicom;
     myid = info->my_pe;
     nold = m1 + m2;
     if (ld1 < nrow || (ld2 < nrow && m2 > 0)) {
@@ -2055,7 +2054,7 @@ int ztrl_cgs(trl_info * info, int nrow, trl_dcomplex * v1, int ld1,
 	cnt = 0;
 	while (cnt <= maxorth) {
 	    // compute [v1 v2]'*rr=wrk
-	    ztrl_g_dot_(mpicom, nrow, v1, ld1, m1, v2, ld2, m2, rr, wrk);
+	    ztrl_g_dot_(info->mpicomp, nrow, v1, ld1, m1, v2, ld2, m2, rr, wrk);
 	    if (m1 > 1) {
 		z__1.r = -one;
 		z__1.i = zero;
@@ -2096,7 +2095,7 @@ int ztrl_cgs(trl_info * info, int nrow, trl_dcomplex * v1, int ld1,
 	    trl_zdotc(&tmp2, nold, wrk, c__1, wrk, c__1);
 	    tmp = tmp2.r;
 	    trl_zdotc(wrk, nrow, rr, c__1, rr, c__1);
-	    trl_g_sum(mpicom, 1, &(wrk[0].r), &(wrk[1].r));
+	    trl_g_sum(info->mpicomp, 1, &(wrk[0].r), &(wrk[1].r));
 	    *rnrm = sqrt(wrk[0].r);
 
 	    old_rnrm = sqrt(wrk[0].r + tmp2.r);
@@ -2106,7 +2105,7 @@ int ztrl_cgs(trl_info * info, int nrow, trl_dcomplex * v1, int ld1,
 
 	    if (DBL_EPSILON * wrk[0].r > tmp2.r) {
 		//if (cnt > 1) {
-		//  ztrl_g_dot_(mpicom, nrow, v1, ld1, m1, v2, ld2, m2, rr, wrk);
+		//  ztrl_g_dot_(info->mpicomp, nrow, v1, ld1, m1, v2, ld2, m2, rr, wrk);
 		//  printf("Orthogonality level of v(%d) (as rr):\n", nold+1);
 		//}
 		// no need for more orthogonalization

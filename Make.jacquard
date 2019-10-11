@@ -8,9 +8,7 @@
   CC      = mpicc
   MPICC   = mpicc
 #
-# Debuging
-  DEBUG =
-  OPT = -DBLAS -O3
+  CFLAGS = -DBLAS -O3
 #
 #
 #

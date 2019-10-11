@@ -8,5 +8,5 @@ clean:
 	(rm -f *.o)
 
 .c.o:
-	$(CC) $(INC) -c $(OPT) $< $(DEBUG)
+	$(CC) $(INC) -c $(CFLAGS) $<
 

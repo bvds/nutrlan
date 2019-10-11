@@ -227,7 +227,7 @@ void trlan(trl_matvec op, trl_uo user_ortho, trl_info * info, int nrow, int mev,
     memset(base, 0, ii * sizeof(double));
     memset(misc, 0, nmis * sizeof(double));
     /* make sure every process is successful so far */
-    ii = trl_sync_flag(info->mpicom, info->stat);
+    ii = trl_sync_flag(info->mpicomp, info->stat);
     info->stat = ii;
     if (ii != 0)
 	goto end;
@@ -460,7 +460,7 @@ void trl_set_iguess(trl_info * info, int nec, int iguess, int nopts,
 	} else {
 	    info->stat = -8;
 	}
-	info->stat = trl_sync_flag(info->mpicom, info->stat);
+	info->stat = trl_sync_flag(info->mpicomp, info->stat);
     } else {
 	info->stat = 0;
     }
@@ -568,7 +568,7 @@ void trl_print_info(trl_info * info, int mvflop)
     tmp2[11] = r_out;
     //printf( "print info\n" );
     //printf( "calling g_sum\n" );
-    trl_g_sum(info->mpicom, 12, tmp2, tmp1);
+    trl_g_sum(info->mpicomp, 12, tmp2, tmp1);
     if (info->log_fp == NULL) {
 	trl_reopen_logfile(info);
     }
@@ -954,12 +954,12 @@ trl_check_ritz(trl_matvec op, trl_info * info, int nrow, int ncol, double *rvec,
 #endif
 	/* Rayleigh quotient -- assuming rvec(:,i) has unit norm */
 	rq[i] = trl_ddot(nrow, &rvec[i * ldrvec], c__1, aq, c__1);
-	trl_g_sum(info->mpicom, 1, &rq[i], gsumwrk);
+	trl_g_sum(info->mpicomp, 1, &rq[i], gsumwrk);
 	d__1 = -rq[i]; /* indent separated =- into = - */
 	trl_daxpy(nrow, d__1, &rvec[i * ldrvec], c__1, aq, c__1);
 	res[i] = trl_ddot(nrow, aq, c__1, aq, c__1);
     }
-    trl_g_sum(info->mpicom, ncol, res, gsumwrk);
+    trl_g_sum(info->mpicomp, ncol, res, gsumwrk);
     for (i = 0; i < ncol; i++) {
 	res[i] = sqrt(res[i]);
     }
@@ -1186,7 +1186,7 @@ trl_rayleigh_quotients(trl_matvec op, trl_info * info, int ncol, double *evec,
 	op(nrow, i__1, evec + i * lde, lde, avec, nrow, info->mvparam);
 #endif
 	wrk[1] = trl_ddot(nrow, evec+ i * lde, c__1, avec, c__1);
-	trl_g_sum(info->mpicom, 2, wrk, &wrk[2]);
+	trl_g_sum(info->mpicomp, 2, wrk, &wrk[2]);
 	info->matvec = info->matvec + 1;
 	info->flop = info->flop + 4 * nrow;
 	if (wrk[0] > 0.0) {
@@ -1194,7 +1194,7 @@ trl_rayleigh_quotients(trl_matvec op, trl_info * info, int ncol, double *evec,
 	    d__1 = -eres[i];
 	    trl_daxpy(nrow, d__1, evec + i * lde, c__1, avec, c__1);
 	    wrk[1] = trl_ddot(nrow, avec, c__1, avec, c__1);
-	    trl_g_sum(info->mpicom, 1, &wrk[1], &wrk[2]);
+	    trl_g_sum(info->mpicomp, 1, &wrk[1], &wrk[2]);
 	    wrk[0] = 1.0 / sqrt(wrk[0]);
 	    eres[ncol + i] = wrk[0] * sqrt(wrk[1]);
 	    d__1 = wrk[0];
@@ -1287,7 +1287,7 @@ void trl_clear_counter(trl_info * info, int nrow, int mev, int lde)
 	info->stat = -4;
     }
     info->nrand = info->stat;
-    info->stat = trl_sync_flag(info->mpicom, info->nrand);
+    info->stat = trl_sync_flag(info->mpicomp, info->nrand);
 
     /* decide what is a good maximum basis size to use */
     if (info->maxlan < info->ned + 3) {
@@ -1564,7 +1564,7 @@ trl_ritz_projection(trl_matvec op, trl_info * info, int mev, double *evec,
 
     trl_dgemm(&trans, &notrans, nev, nev, nrow, one, evec, lde, evec, lde,
 	      zero, rvv, nev);
-    trl_g_sum(info->mpicom, nsqr, rvv, wrk2);
+    trl_g_sum(info->mpicomp, nsqr, rvv, wrk2);
 
     /* step (2) : Choleskey factorization of G */
     dpotrf_(&upper, &nev, rvv, &nev, &ierr);
@@ -1585,7 +1585,7 @@ trl_ritz_projection(trl_matvec op, trl_info * info, int mev, double *evec,
 	trl_dgemv(&trans, nrow, i, one, evec, lde, avec, i__1, zero,
 		  &wrk2[(i - 1) * nev], i__1);
     }
-    trl_g_sum(info->mpicom, nsqr, wrk2, uau);
+    trl_g_sum(info->mpicomp, nsqr, wrk2, uau);
     for (i = 1; i < nev; i++) {
 	for (j = 0; j < i; j++) {
 	    wrk2[i + j * nev] = wrk2[(i - 1) * nev + j];
@@ -1645,7 +1645,7 @@ trl_ritz_projection(trl_matvec op, trl_info * info, int mev, double *evec,
 	trl_daxpy(nrow, d__1, evec + i * lde, i__1, avec, i__1);
 	eres[nev + i] = trl_ddot(nrow, avec, i__1, avec, i__1);
     }
-    trl_g_sum(info->mpicom, nev, &eres[nev], avec);
+    trl_g_sum(info->mpicomp, nev, &eres[nev], avec);
     for (i = nev; i < nev + nev; i++) {
 	if (eres[i] > 0.0) {
 	    eres[i] = sqrt(eres[i]);

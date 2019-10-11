@@ -9,11 +9,9 @@
   LOADER  = cc
   PLOADER = cc
 #
-# Debuging
-  DEBUG = 
-  OPT = -fastsse -DBLAS
+  CFLAGS = -fastsse -DBLAS
 #  If linking to CLAPACK
-#  OPT = -O3
+#  CFLAGS = -O3
 #
 # Make command
   MAKE = make

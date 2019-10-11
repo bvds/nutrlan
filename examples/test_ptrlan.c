@@ -116,7 +116,7 @@ int main( int argn, char **argv ) {
 		    } else {
 			trl_set_debug( &info, 0, file );
 			// call TRLAN to compute the eigenvalues
-			trlan(diag_op, &info, nrow, mev, eval, evec, nrow, lwrk, res );
+			trlan(diag_op, NULL, &info, nrow, mev, eval, evec, nrow, lwrk, res );
 			trl_print_info(&info, 3*nrow );
 			if( info.nec > 0 ) {
 			    i = info.nec;

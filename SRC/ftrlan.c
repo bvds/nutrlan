@@ -21,9 +21,9 @@ ztrlan_(ztrl_matvec op, trl_info * info, int nrow, int mev, double *eval,
 }
 /*
  */
-void trl_init_info_(trl_info * info, int nrow, int mxlan, int lohi,
+void trl_init_info_(trl_info *info, int nrow, int mxlan, int lohi,
                     int ned, double tol, int restart, int maxmv,
-                    int mpicom)
+                    void *mpicomp)
 {
   trl_init_info( info, nrow, mxlan, lohi, ned, tol, restart, maxmv, mpicom );
 }
@@ -92,4 +92,3 @@ void ztrl_check_ritz_(ztrl_matvec op, trl_info * info, int nrow, int ncol,
   ztrl_check_ritz( op, info, nrow, ncol, rvec, ldrvec, alpha, check, 
                    beta, eval, wrk, lwrk );
 }
-

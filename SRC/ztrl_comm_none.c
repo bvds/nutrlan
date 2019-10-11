@@ -13,7 +13,7 @@
 #include "ztrl_comm_i.h"
 
 ////
-void ztrl_g_dot_(int mpicom, int nrow, trl_dcomplex * v1, int ld1, int m1,
+void ztrl_g_dot_(void *mpicom, int nrow, trl_dcomplex * v1, int ld1, int m1,
 		 trl_dcomplex * v2, int ld2, int m2, trl_dcomplex * rr,
 		 trl_dcomplex * wrk)
 {
@@ -25,7 +25,7 @@ void ztrl_g_dot_(int mpicom, int nrow, trl_dcomplex * v1, int ld1, int m1,
 //
 // Arguments:
 // ==========
-// mpicom     (input) integer
+// mpicom     (ignored) pointer to MPI_Comm
 //             On entry, specifies MPI communicator.
 //
 // nrow       (input) integer
@@ -128,7 +128,7 @@ void ztrl_g_dot_(int mpicom, int nrow, trl_dcomplex * v1, int ld1, int m1,
 }
 
 ////
-void ztrl_g_sum(int mpicom, int nelm, trl_dcomplex * x, trl_dcomplex * y)
+void ztrl_g_sum(void *mpicom, int nelm, trl_dcomplex * x, trl_dcomplex * y)
 {
 //
 // Purpose:
@@ -137,7 +137,7 @@ void ztrl_g_sum(int mpicom, int nelm, trl_dcomplex * x, trl_dcomplex * y)
 //
 // Arguments:
 // ==========
-// mpicom    (input) integer
+// mpicom    (ignored) pointer to MPI_Comm
 //            On entry, specifies the MPI communicator.
 //
 // nelm      (input) integer

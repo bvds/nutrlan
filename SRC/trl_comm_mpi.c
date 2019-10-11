@@ -10,7 +10,7 @@
 #include <float.h>
 #include <time.h>
 #include <string.h>
-#include "mpi.h"
+#include <mpi.h>
 
 #include "trl_map.h"
 #include "trlan.h"
@@ -22,9 +22,9 @@
 ////
 //void trl_init_info(trl_info *info, int nrow, int mxlan, int lohi, int ned, 
 //                    int nopts, ... ) {
-void trl_init_info(trl_info * info, int nrow, int mxlan, int lohi,
+void trl_init_info(trl_info *info, int nrow, int mxlan, int lohi,
 		   int ned, double tol, int restart, int maxmv,
-		   int mpicom)
+		   void *mpicomp)
 {
 //
 // Purpose:
@@ -67,13 +67,14 @@ void trl_init_info(trl_info * info, int nrow, int mxlan, int lohi,
 //           multiplication allowed. By default, mxmv is set to be 
 //           (info->ntot)*(info->ned).
 //
-// mpicom   (optional) integer
+// mpicomp  (optional) pointer to MPI_Comm
 //           If provided, specifites the MPI communicator. By default, it is a 
 //           duplicate of MPI_COMM_WORLD. In sequential case, this is set to 0.
 //
 // ..
 // .. executable statements ..
     int id, ie;
+    MPI_Comm mpicom = *((MPI_Comm *) mpicomp);
     //va_list argptr;
     //va_start( argptr,nopts );
     //if( nopts > 0 ) {
@@ -104,24 +105,11 @@ void trl_init_info(trl_info * info, int nrow, int mxlan, int lohi,
     } else {
 	info->maxmv = min(max(info->ntot, 1000), 1000 * info->ned);
     }
-    //if( nopts > 3 ) {
-    if (mpicom > 0) {
-	//info->mpicom = va_arg( argptr,int );
-	info->mpicom = mpicom;
+    if (mpicomp != NULL) {
+	info->mpicomp = mpicomp;
     } else {
-	info->stat =
-	    MPI_Comm_dup(MPI_COMM_WORLD, (MPI_Comm *) (&(info->mpicom)));
-	if (info->stat == MPI_SUCCESS) {
-	    info->stat = 0;
-	} else {
-	    printf
-		("TRL_INIT_INFO: unable to duplication MPI_COMM_WORLD.\n");
-	    printf("This probably indicate MPI_INIT is not called.\n");
-	    return;
-	}
+        fprintf(stderr, "TRL_INIT_INFO:  MPI Comm not supplied.\n");
     }
-    //printf( "info->mpicom=%d\n",info->mpicom );
-    //va_end( argptr );
     info->maxlan = mxlan;
     if (mxlan <= ned) {
 	info->maxlan = ned + max(ned, 6);
@@ -130,7 +118,7 @@ void trl_init_info(trl_info * info, int nrow, int mxlan, int lohi,
     info->ned = ned;
     info->nloc = nrow;
     info->stat = MPI_Allreduce(&nrow, &(info->ntot), 1, MPI_INT, MPI_SUM,
-			       (MPI_Comm) (info->mpicom));
+			       mpicom);
     if (info->stat == MPI_SUCCESS) {
 	info->stat = 0;
     } else {
@@ -181,14 +169,14 @@ void trl_init_info(trl_info * info, int nrow, int mxlan, int lohi,
     info->avgm = 0.0;
     info->mvparam = 0;
 
-    info->stat = MPI_Comm_rank((MPI_Comm) (info->mpicom), &(info->my_pe));
+    info->stat = MPI_Comm_rank(mpicom, &(info->my_pe));
     if (info->stat != MPI_SUCCESS) {
 	printf("TRL_INIT_INFO: failed to perform MPI_COMM_RANK, ierr=%d\n",
 	       info->stat);
 	info->stat = -2;
 	return;
     }
-    info->stat = MPI_Comm_size((MPI_Comm) (info->mpicom), &(info->npes));
+    info->stat = MPI_Comm_size(mpicom, &(info->npes));
     if (info->stat != MPI_SUCCESS) {
 	printf("TRL_INIT_INFO: failed to perform MPI_COMM_SIZE, ierr=%d\n",
 	       info->stat);
@@ -196,7 +184,7 @@ void trl_init_info(trl_info * info, int nrow, int mxlan, int lohi,
 	return;
     }
     ie = MPI_Allreduce(&(info->stat), &(id), 1, MPI_INT, MPI_MIN,
-		       (MPI_Comm) (info->mpicom));
+		       mpicom);
     if (ie == MPI_SUCCESS) {
 	info->stat = id;
     } else {
@@ -214,7 +202,7 @@ void trl_init_info(trl_info * info, int nrow, int mxlan, int lohi,
 }
 
 ////
-void trl_g_sum(int mpicom, int nelm, double *x, double *y)
+void trl_g_sum(void *mpicomp, int nelm, double *x, double *y)
 {
 //
 // Purpose
@@ -225,7 +213,7 @@ void trl_g_sum(int mpicom, int nelm, double *x, double *y)
 //
 // Arguments
 // =========
-// mpicom   (input) integer
+// mpicomp  (input) pointer to MPI_Comm
 //           On entry, specifites the MPI communicator.
 //
 // nelm     (input) integer
@@ -244,22 +232,23 @@ void trl_g_sum(int mpicom, int nelm, double *x, double *y)
 // ..
 // .. Local scalars ..
     int ierr;
+    MPI_Comm mpicom = *((MPI_Comm *) mpicomp);
 //
 // ..
 // .. Executable statements ..
     ierr =
-	MPI_Allreduce(x, y, nelm, MPI_DOUBLE, MPI_SUM, (MPI_Comm) mpicom);
+	MPI_Allreduce(x, y, nelm, MPI_DOUBLE, MPI_SUM, mpicom);
     trl_dcopy(nelm, y, c__1, x, c__1);
     if (ierr != MPI_SUCCESS) {
 	printf("TRL_G_SUM: MPI_ALLREDUCE failed with error code %d.\n",
 	       ierr);
-	MPI_Abort((MPI_Comm) mpicom, ierr);
+	MPI_Abort(mpicom, ierr);
     }
     return;
 }
 
 ////
-int trl_sync_flag(int mpicom, int inflag)
+int trl_sync_flag(void *mpicomp, int inflag)
 {
 //
 // Purpose
@@ -269,7 +258,7 @@ int trl_sync_flag(int mpicom, int inflag)
 //
 // Arguments
 // =========
-// mpicom   (input) integer
+// mpicomp  (input) pointer to MPI_Comm
 //           On entry, specifites the MPI communicator.
 // 
 // inflag   (input) integer
@@ -277,22 +266,23 @@ int trl_sync_flag(int mpicom, int inflag)
 // ..
 // .. Local scalars ..
     int outflag, ierr;
+    MPI_Comm mpicom = *((MPI_Comm *) mpicomp);
 //
 // ..
 // .. Executable statements ..
     ierr =
 	MPI_Allreduce(&inflag, &outflag, 1, MPI_INT, MPI_MIN,
-		      (MPI_Comm) mpicom);
+		      mpicom);
     if (ierr != MPI_SUCCESS) {
 	printf("TRL_SYNC_FLAG: MPI_ALLREDUCE failed with error code %d.",
 	       ierr);
-	MPI_Abort((MPI_Comm) mpicom, ierr);
+	MPI_Abort(mpicom, ierr);
     }
     return outflag;
 }
 
 ////
-void trl_g_dot_(int mpicom, int nrow, double *v1, int ld1, int m1,
+void trl_g_dot_(void *mpicomp, int nrow, double *v1, int ld1, int m1,
 		double *v2, int ld2, int m2, double *rr, double *wrk)
 {
 //
@@ -303,7 +293,7 @@ void trl_g_dot_(int mpicom, int nrow, double *v1, int ld1, int m1,
 //
 // Arguments
 // =========
-// mpicom     (input) integer
+// mpicomp    (input) pointer to MPI_Comm
 //             On entry, specifies MPI communicator.
 //
 // nrow       (input) integer
@@ -343,6 +333,7 @@ void trl_g_dot_(int mpicom, int nrow, double *v1, int ld1, int m1,
 // ..
 // .. Local scalars ..
     int i, npe, nd, m1p1;
+    MPI_Comm mpicom = *((MPI_Comm *) mpicomp);
 //
 // ..
 // .. Executable statements ..
@@ -380,18 +371,18 @@ void trl_g_dot_(int mpicom, int nrow, double *v1, int ld1, int m1,
     } else if (m2 == 1) {
 	wrk[nd + m1p1 - 1] = trl_ddot(nrow, v2, c__1, rr, c__1);
     }
-    if ((MPI_Comm) mpicom == MPI_COMM_SELF) {
+    if (mpicom == MPI_COMM_SELF) {
 	npe = 1;
     } else {
-	i = MPI_Comm_size((MPI_Comm) mpicom, &npe);
+	i = MPI_Comm_size(mpicom, &npe);
     }
     if (npe > 1) {
 	i = MPI_Allreduce(&wrk[nd], wrk, nd, MPI_DOUBLE, MPI_SUM,
-			  (MPI_Comm) mpicom);
+			  mpicom);
 	if (i != MPI_SUCCESS) {
 	    printf("TRL_G_DOT: MPI_ALLREDUCE failed with error code %d.\n",
 		   i);
-	    MPI_Abort((MPI_Comm) mpicom, i);
+	    MPI_Abort(mpicom, i);
 	}
     } else {
 	trl_dcopy(nd, &wrk[nd], c__1, wrk, c__1);

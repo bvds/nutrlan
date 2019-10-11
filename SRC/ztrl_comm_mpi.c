@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <float.h>
-#include "mpi.h"
+#include <mpi.h>
 
 #include "trl_map.h"
 #include "trlan.h"
@@ -15,7 +15,7 @@
 #include "ztrl_comm_i.h"
 
 ////
-void ztrl_g_dot_(int mpicom, int nrow, trl_dcomplex * v1, int ld1, int m1,
+void ztrl_g_dot_(void *mpicomp, int nrow, trl_dcomplex * v1, int ld1, int m1,
 		 trl_dcomplex * v2, int ld2, int m2, trl_dcomplex * rr,
 		 trl_dcomplex * wrk)
 {
@@ -27,7 +27,7 @@ void ztrl_g_dot_(int mpicom, int nrow, trl_dcomplex * v1, int ld1, int m1,
 //
 // Arguments:
 // ==========
-// mpicom     (input) integer
+// mpicomp    (input) pointer to MPI_Comm
 //             On entry, specifies MPI communicator.
 //
 // nrow       (input) integer
@@ -63,6 +63,7 @@ void ztrl_g_dot_(int mpicom, int nrow, trl_dcomplex * v1, int ld1, int m1,
     char trans = 'C';
     trl_dcomplex one, zero;
     integer c__1 = 1;
+    MPI_Comm mpicom = *((MPI_Comm *) mpicomp);
 //
 // ..
 // .. local scalars ..
@@ -127,18 +128,18 @@ void ztrl_g_dot_(int mpicom, int nrow, trl_dcomplex * v1, int ld1, int m1,
     } else if (m2 == 1) {
 	trl_zdotc(&(wrk[nd + m1p1 - 1]), nrow, v2, c__1, rr, c__1);
     }
-    if ((MPI_Comm) mpicom == MPI_COMM_SELF) {
+    if (mpicom == MPI_COMM_SELF) {
 	npe = 1;
     } else {
-	i = MPI_Comm_size((MPI_Comm) mpicom, &npe);
+	i = MPI_Comm_size(mpicom, &npe);
     }
     if (npe > 1) {
 	i = MPI_Allreduce(&wrk[nd], wrk, 2 * nd, MPI_DOUBLE, MPI_SUM,
-			  (MPI_Comm) mpicom);
+			  mpicom);
 	if (i != MPI_SUCCESS) {
 	    printf("TRL_G_DOT: MPI_ALLREDUCE failed with error code %d.\n",
 		   i);
-	    MPI_Abort((MPI_Comm) mpicom, i);
+	    MPI_Abort(mpicom, i);
 	}
     } else {
 	trl_zcopy(nd, &wrk[nd], c__1, wrk, c__1);
@@ -148,7 +149,7 @@ void ztrl_g_dot_(int mpicom, int nrow, trl_dcomplex * v1, int ld1, int m1,
 }
 
 ////
-void ztrl_g_sum(int mpicom, int nelm, trl_dcomplex * x, trl_dcomplex * y)
+void ztrl_g_sum(void *mpicomp, int nelm, trl_dcomplex * x, trl_dcomplex * y)
 {
 //
 // Purpose:
@@ -157,7 +158,7 @@ void ztrl_g_sum(int mpicom, int nelm, trl_dcomplex * x, trl_dcomplex * y)
 //
 // Arguments:
 // ==========
-// mpicom    (input) integer
+// mpicomp    (input) pointer to MPI_Comm
 //            On entry, specifies the MPI communicator.
 //
 // nelm      (input) integer
@@ -171,15 +172,16 @@ void ztrl_g_sum(int mpicom, int nelm, trl_dcomplex * x, trl_dcomplex * y)
 //
     int c__1 = 1;
     int ierr;
+    MPI_Comm mpicom = *((MPI_Comm *) mpicomp);
     extern int zcopy_();
     ierr =
 	MPI_Allreduce(x, y, 2 * nelm, MPI_DOUBLE, MPI_SUM,
-		      (MPI_Comm) mpicom);
+		      mpicom);
     zcopy_(&nelm, y, &c__1, x, &c__1);
     if (ierr != MPI_SUCCESS) {
 	printf("TRL_G_SUM: MPI_ALLREDUCE failed with error code %d.\n",
 	       ierr);
-	MPI_Abort((MPI_Comm) mpicom, ierr);
+	MPI_Abort(mpicom, ierr);
     }
     return;
 }

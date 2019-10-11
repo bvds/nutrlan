@@ -1,8 +1,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <mpi.h>
 
-#include "mpi.h"
 #include "trlan.h"
 
 //
@@ -58,15 +58,17 @@ int main( int argn, char **argv ) {
     // local variable declaration
     double eval[mev], evec[mev*nrow], exact[mev];
     double res[lwrk], wrk[lwrk];
+    MPI_Comm mpicom = MPI_COMM_WORLD;
     trl_info info;
     int i, check;
     // initialize MPI
-    if( MPI_Init(&argn,&argv) != MPI_SUCCESS ) {
+    if( MPI_Init(&argn, &argv) != MPI_SUCCESS ) {
 	printf( "Failed to initialize MPI.\r\n" );
     }
     // initialize info -- tell TRLAN to compute NEV smallest eigenvalues
     // of the diag_op
-    trl_init_info( &info, nrow, maxlan, lohi, ned, 1.4901e-8, 7, 5000, -1 );
+    trl_init_info( &info, nrow, maxlan, lohi, ned, 1.4901e-8, 7, 5000,
+                   &mpicom);
     trl_set_iguess( &info, 0, 1, 0, NULL );
     // the Lanczos recurrence is set to start with [1,1,...,1]^T
     memset( eval, 0, mev*sizeof(double) );
@@ -76,7 +78,7 @@ int main( int argn, char **argv ) {
     //info.verbose =  8;
     trl_set_debug( &info, 0, "LOG" );
     // call TRLAN to compute the eigenvalues
-    trlan(diag_op, &info, nrow, mev, eval, evec, nrow, lwrk, res );
+    trlan(diag_op, NULL, &info, nrow, mev, eval, evec, nrow, lwrk, res);
     trl_print_info( &info, 3*nrow );
     //trl_terse_info( &info, 0 );
     for( i=0; i<mev; i++ ) {

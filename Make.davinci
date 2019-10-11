@@ -8,11 +8,9 @@
   LOADER  = icc
   PLOADER = icc
 #
-# Debuging
-  DEBUG =
-  OPT = -DBLAS -mp
+  CFLAGS = -DBLAS -mp
 #  If linking to CLAPACK
-#  OPT = -O3
+#  CFLAGS = -O3
 #
 # Make command
   MAKE = make

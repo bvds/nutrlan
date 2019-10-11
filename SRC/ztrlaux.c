@@ -376,7 +376,7 @@ void ztrl_check_orth(trl_info * info, int nrow, trl_dcomplex * v1,
     // check orthognality of the basis vectors
     //
     for (i = 0; i < j1; i++) {
-	ztrl_g_dot_(info->mpicom, nrow, v1, ld1, i + 1, v2, ld2, 0,
+	ztrl_g_dot_(info->mpicomp, nrow, v1, ld1, i + 1, v2, ld2, 0,
 		    &v1[i * ld1], wrk);
 	wrk[i].r = wrk[i].r - one;
 	if (info->verbose > 7) {
@@ -402,7 +402,7 @@ void ztrl_check_orth(trl_info * info, int nrow, trl_dcomplex * v1,
     }
     for (i = 0; i < j2; i++) {
 	j = j1 + i;
-	ztrl_g_dot_(info->mpicom, nrow, v1, ld1, j1, v2, ld2, i + 1,
+	ztrl_g_dot_(info->mpicomp, nrow, v1, ld1, j1, v2, ld2, i + 1,
 		    &v2[i * ld2], wrk);
 	wrk[j].r = wrk[j].r - one;
 	if (info->verbose > 7) {
@@ -764,7 +764,7 @@ ztrl_check_recurrence(ztrl_matvec op, trl_info * info,
 	}
     }
     //
-    ztrl_g_sum(info->mpicom, jnd * 4, wrk, &wrk[jnd * 4]);
+    ztrl_g_sum(info->mpicomp, jnd * 4, wrk, &wrk[jnd * 4]);
     aq[0].r = zero;
     for (ii = 0; ii < jnd; ii++) {
 	aq[0].r += wrk[ii].r;

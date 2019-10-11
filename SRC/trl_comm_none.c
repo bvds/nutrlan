@@ -26,7 +26,7 @@
 //                    int nopts, ... ) {
 void trl_init_info(trl_info * info, int nrow, int mxlan, int lohi,
 		    int ned, double tol, int restart, int maxmv,
-		    int mpicom)
+		    void *mpicomp)
 {
 //
 // Purpose:
@@ -69,7 +69,7 @@ void trl_init_info(trl_info * info, int nrow, int mxlan, int lohi,
 //           multiplication allowed. By default, mxmv is set to be 
 //           (info->ntot)*(info->ned).
 //
-// mpicom   (optional) integer
+// mpicomp  (ignored) pointer to MPI_Comm
 //           If provided, specifites the MPI communicator. By default, it is a 
 //           duplicate of MPI_COMM_WORLD. In sequential case, this is set to 0.
 //
@@ -104,7 +104,10 @@ void trl_init_info(trl_info * info, int nrow, int mxlan, int lohi,
     } else {
 	info->maxmv = min(max(info->ntot, 1000), 1000 * info->ned);
     }
-    info->mpicom = -INT_MAX;
+    if (mpicomp != NULL) {
+        fprintf(stderr, "TRL_INIT_INFO:  ignoring MPI Comm.\n");
+    }
+    info->mpicomp = NULL;
     //va_end( argptr );
     // setup the rest of arguments
     info->maxlan = mxlan;
@@ -189,7 +192,7 @@ void trl_init_info(trl_info * info, int nrow, int mxlan, int lohi,
 }
 
 ////
-void trl_g_sum(int mpicom, int nelm, double *x, double *y)
+void trl_g_sum(void *mpicomp, int nelm, double *x, double *y)
 {
 //
 // Purpose:
@@ -198,7 +201,7 @@ void trl_g_sum(int mpicom, int nelm, double *x, double *y)
 //
 // Arguments:
 // ==========
-// mpicom    (input) integer
+// mpicomp   (ignored) pointer to MPI_Comm
 //            On entry, specifies the MPI communicator.
 //
 // nelm      (input) integer
@@ -213,7 +216,7 @@ void trl_g_sum(int mpicom, int nelm, double *x, double *y)
 }
 
 ////
-int trl_sync_flag(int mpicom, int inflag)
+int trl_sync_flag(void *mpicomp, int inflag)
 {
 //
 // Purpose:
@@ -222,7 +225,7 @@ int trl_sync_flag(int mpicom, int inflag)
 //
 // Arguments:
 // ==========
-// mpicom    (input) integer
+// mpicomp   (ignored) pointer to MPI_Comm
 //            On entry, specifies the MPI communicator.
 //
 // inflag    (inpuut) integer
@@ -232,7 +235,7 @@ int trl_sync_flag(int mpicom, int inflag)
 }
 
 ////
-void trl_g_dot_(int mpicom, int nrow, double *v1, int ld1, int m1,
+void trl_g_dot_(void *mpicomp, int nrow, double *v1, int ld1, int m1,
 		double *v2, int ld2, int m2, double *rr, double *wrk)
 {
 //
@@ -243,7 +246,7 @@ void trl_g_dot_(int mpicom, int nrow, double *v1, int ld1, int m1,
 //
 // Arguments:
 // ==========
-// mpicom     (input) integer
+// mpicomp    (ignored) pointer to MPI_Comm
 //             On entry, specifies MPI communicator.
 //
 // nrow       (input) integer

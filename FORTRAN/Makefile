@@ -7,5 +7,5 @@ clean:
 	rm -f *.mod *.o *~
 
 .f.o:
-	$(FC) -c $(FOPT) $< $(DEBUG)
+	$(FC) -c $(FFLAGS) $<
 

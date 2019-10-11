@@ -158,7 +158,7 @@ ztrlan(ztrl_matvec op, trl_info * info, int nrow, int mev, double *eval,
     //
     // make sure every process is successful so far
     //printf( "synchronizing.\n" );
-    ii = trl_sync_flag(info->mpicom, info->stat);
+    ii = trl_sync_flag(info->mpicomp, info->stat);
     info->stat = ii;
     if (ii != 0)
 	goto end;
@@ -345,16 +345,16 @@ ztrl_check_ritz(ztrl_matvec op, trl_info * info, int nrow, int ncol,
 #endif
 	// Rayleigh quotient -- assuming rvec(:,i) has unit norm
 	trl_zdotc(&z__1, nrow, &rvec[i * ldrvec], c__1, aq, c__1);
-	//ztrl_g_sum(info->mpicom, 1, &z__1, gsumwrk);
+	//ztrl_g_sum(info->mpicomp, 1, &z__1, gsumwrk);
 	rq[i] = z__1.r;
-	trl_g_sum(info->mpicom, 1, &rq[i], dsumwrk);
+	trl_g_sum(info->mpicomp, 1, &rq[i], dsumwrk);
 	zdaxpy_(nrow, -z__1.r, &rvec[i * ldrvec], aq);
 	trl_zdotc(&z__1, nrow, aq, c__1, aq, c__1);
 	res[i] = z__1.r;
 	trl_zdotc(&z__1, nrow, &rvec[i * ldrvec], c__1, &rvec[i * ldrvec],
 		  c__1);
     }
-    trl_g_sum(info->mpicom, ncol, res, dsumwrk);
+    trl_g_sum(info->mpicomp, ncol, res, dsumwrk);
     for (i = 0; i < ncol; i++) {
 	res[i] = sqrt(res[i]);
     }

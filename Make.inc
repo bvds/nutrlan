@@ -9,9 +9,11 @@
   LOADER  = cc
   PLOADER = mpicc
 #
+CFLAGS = -DBLAS
 # Debuging
-  DEBUG = -Wall -g # -Wextra
-  OPT = -DBLAS -O3
+  CFLAGS += -Wall -g # -Wextra
+# Fast
+#  CFLAGS += -O3
 #
 # Make command
   MAKE = make

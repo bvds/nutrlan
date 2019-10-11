@@ -26,7 +26,7 @@ the user can supply an additional re-orthogonalization routine.
 ## Installation guide
 
 You can use the Makefile in this directory to generate nuTRLan library.
-The make file flags are in file Make.inc.  Check the file to make sure
+The make file flags are in file `Make.inc`.  Check the file to make sure
 that the options are appropriate for your particular machine.
 
  - You will need a C compiler to compile the main body of the library.
@@ -87,3 +87,14 @@ The `examples` directory contains a small set of examples.
    matrix on a parallel machine
 
     `pzsimple.f`
+
+## Debugging ##
+
+Debugging MPI is hard.  This can be used to attach `gdb` to each
+process:
+
+    mpirun -np 1 xterm -e gdb  ./psimple
+
+or one can attach `valgrind`:
+
+    mpirun -np 1 valgrind --tool=memcheck --leak-check=yes --show-reachable=yes --num-callers=20 --track-fds=yes ./psimple

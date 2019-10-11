@@ -21,7 +21,7 @@ void ztrlan_(ztrl_matvec op,
 
 void trl_init_info_(trl_info * info, int nrow, int mxlan, int lohi,
                     int ned, double tol, int restart, int maxmv,
-                    int mpicom);
+                    void *mpicomp);
 
 void trl_set_debug_(trl_info * info, int msglvl, char *filename);
 

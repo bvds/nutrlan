@@ -14,8 +14,8 @@ clean:
 	rm -f *.o *~
 
 #$(OBJ_PARALLEL):
-#	$(MPICC) $(INC) -c $(OPT) $< $(DEBUG)
+#	$(MPICC) $(INC) -c $(CFLAGS) $<
 
 # on seaborg, replace $(CC) with $(MPICC)
 .c.o:
-	$(CC) $(INC) -c $(OPT) $< $(DEBUG) $(CFLAGS)
+	$(CC) $(INC) -c $(CFLAGS) $<

@@ -8,9 +8,7 @@
   LOADER  = gcc
   PLOADER = mpicc
 #
-# Debuging
-  DEBUG = 
-  OPT = -O3 -DF2C -DBLASWRAP
+  CFLAGS = -O3 -DF2C -DBLASWRAP
 #
 # Make command
   MAKE = make

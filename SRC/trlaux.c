@@ -403,7 +403,7 @@ void trl_check_orth(trl_info * info, int nrow, double *v1, int ld1,
        // check orthognality of the basis vectors
      */
     for (i = 0; i < j1; i++) {
-	trl_g_dot_(info->mpicom, nrow, v1, ld1, i + 1, v2, ld2, 0,
+	trl_g_dot_(info->mpicomp, nrow, v1, ld1, i + 1, v2, ld2, 0,
 		   v1 + i * ld1, wrk);
 	wrk[i] = wrk[i] - one;
 	if (info->verbose > 7) {
@@ -429,7 +429,7 @@ void trl_check_orth(trl_info * info, int nrow, double *v1, int ld1,
     }
     for (i = 0; i < j2; i++) {
 	j = j1 + i;
-	trl_g_dot_(info->mpicom, nrow, v1, ld1, j1, v2, ld2, i + 1,
+	trl_g_dot_(info->mpicomp, nrow, v1, ld1, j1, v2, ld2, i + 1,
 		   v2 + i * ld2, wrk);
 	wrk[j] = wrk[j] - one;
 	if (info->verbose > 7) {
@@ -713,7 +713,7 @@ trl_check_recurrence(trl_matvec op,
 	}
     }
 
-    trl_g_sum(info->mpicom, jnd * 4, wrk, &wrk[jnd * 4]);
+    trl_g_sum(info->mpicomp, jnd * 4, wrk, &wrk[jnd * 4]);
     aq[0] = zero;
     for (ii = 0; ii < jnd; ii++) {
 	aq[0] += wrk[ii];

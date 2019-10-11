@@ -135,7 +135,7 @@ int main( int argn, char **argv ) {
 			    trl_set_debug( &info, 0, file );
 			    // call TRLAN to compute the eigenvalues
 			    t1 = clock();
-			    trlan(diag_op, &info, nrow, mev, eval, evec, nrow,
+			    trlan(diag_op, NULL, &info, nrow, mev, eval, evec, nrow,
 				  lwrk, res );
 			    t2 = clock();
 			    printf( "TRLan: %d secs\n",

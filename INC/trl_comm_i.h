@@ -2,7 +2,8 @@
 #ifndef __TRLCOMM_H
 #define __TRLCOMM_H
 
-void trl_g_sum(int mpicom, int nelm, double *x, double *y);
+
+void trl_g_sum(void *mpicomp, int nelm, double *x, double *y);
 /*
 //
 // Purpose:
@@ -11,7 +12,7 @@ void trl_g_sum(int mpicom, int nelm, double *x, double *y);
 //
 // Arguments:
 // ==========
-// mpicom    (input) integer
+// mpicomp   (input) pointer to MPI_Comm
 //            On entry, specifies the MPI communicator.
 //
 // nelm      (input) integer
@@ -25,7 +26,7 @@ void trl_g_sum(int mpicom, int nelm, double *x, double *y);
 //
 ////
 */
-int trl_sync_flag(int mpicom, int inflag);
+int trl_sync_flag(void *mpicomp, int inflag);
 /*
 // Purpose:
 // ========
@@ -33,7 +34,7 @@ int trl_sync_flag(int mpicom, int inflag);
 //
 // Arguments:
 // ==========
-// mpicom    (input) integer
+// mpicomp   (input) pointer to MPI_Comm
 //            On entry, specifies the MPI communicator.
 //
 // inflag    (inpuut) integer
@@ -41,7 +42,7 @@ int trl_sync_flag(int mpicom, int inflag);
 //
 ////
 */
-void trl_g_dot_(int mpicom, int nrow, double *v1, int ld1, int m1,
+void trl_g_dot_(void *mpicomp, int nrow, double *v1, int ld1, int m1,
 		double *v2, int ld2, int m2, double *rr, double *wrk);
 /*
 // Purpose:
@@ -51,7 +52,7 @@ void trl_g_dot_(int mpicom, int nrow, double *v1, int ld1, int m1,
 //
 // Arguments:
 // ==========
-// mpicom     (input) integer
+// mpicomp    (input) pointer to MPI_Comm
 //             On entry, specifies MPI communicator.
 //
 // nrow       (input) integer

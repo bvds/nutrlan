@@ -10,11 +10,12 @@
 # Fortran compiler
   FC = mpxlf90
 #
-# Debuging
-#  DEBUG = -g
-  OPT  = -O3 -qcpluscmt -qstrict -lxlf90 -DSTD_DATA -DBLAS_EXT -DNOCHANGE -DCBLAS 
-  FOPT = -O3 -qstrict  
-#  OPT = -O3 -qcpluscmt -qstrict -lxlf90 -DESSL -DNOCHANGE
+  CFLAGS  = -O3 -qcpluscmt -qstrict -lxlf90 -DSTD_DATA -DBLAS_EXT -DNOCHANGE -DCBLAS 
+#  CFLAGS = -O3 -qcpluscmt -qstrict -lxlf90 -DESSL -DNOCHANGE
+# Debuging:
+#  CFLAGS += -g
+#
+  FFLAGS = -O3 -qstrict
 #
 # Make command
   MAKE = make

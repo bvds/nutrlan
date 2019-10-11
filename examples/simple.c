@@ -75,7 +75,7 @@ int main( int argn, char **argv ) {
 	res = (double*)malloc(lwrk*sizeof(double));
 	wrk = (double*)malloc(lwrk*sizeof(double));
     }
-    trl_init_info( &info, nrow, maxlan, lohi, ned, 1.4901e-8, 1, 2000000, -1 );
+    trl_init_info( &info, nrow, maxlan, lohi, ned, 1.4901e-8, 1, 2000000, NULL);
     trl_set_iguess( &info, 0, 1, 0, NULL );
     // the Lanczos recurrence is set to start with [1,1,...,1]^T
     memset(eval, 0, mev*sizeof(double) );
