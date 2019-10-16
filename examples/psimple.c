@@ -53,7 +53,7 @@ void diag_op(const int nrow, const int ncol, const double *xin, const int ldx,
 //
 /// a really simple example of how to use nuTRLan (parallel)
 int main( int argn, char **argv ) {
-    static const int nrow=1000, lohi=-1, ned=5, maxlan=100, mev=10;
+    static const int nrow=100, lohi=-1, ned=5, maxlan=100, mev=10;
     int lwrk=maxlan*(maxlan+10);
     // local variable declaration
     double eval[mev], evec[mev*nrow], exact[mev];
