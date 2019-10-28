@@ -11,9 +11,16 @@
 #
 CFLAGS = -DBLAS
 # Debuging
-  CFLAGS += -Wall -g # -Wextra
+  CFLAGS += -O -Wall -g # -Wextra
 # Fast
 #  CFLAGS += -O3
+#
+#  On AMD Epyc, add flags suggested by
+#  http://www.prace-ri.eu/best-practice-guide-amd-epyc
+#
+ifeq ($(shell lscpu|grep -m 1 -c -i epyc),1)
+CFLAGS += -march=znver1 -mtune=znver1 -mfma -mavx2 -m3dnow -fomit-frame-pointer
+endif
 #
 # Make command
   MAKE = make
