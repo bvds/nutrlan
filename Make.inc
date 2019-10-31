@@ -35,10 +35,10 @@ endif
   DIR_CLAPACK = 
 #
 # External libraries
-  LIB_DIR = 
+  LIB_DIR =
   MATH    = -lm
-  BLAS    = -lblas
-  LAPACK  = -llapack
+  BLAS    = -lblis
+  LAPACK  = -lflame
   CLAPACK = 
   F2C     = 
   LIB     = $(LIB_DIR) $(LAPACK) $(BLAS) $(CLAPACK) $(F2C) $(MATH) -lpthread
@@ -48,7 +48,7 @@ endif
   INC_CLAPACK =
 #
 #   /usr/include/mpich or /usr/include/openmpi
-  INC_NUTRLAN  = -I$(TOP)/INC -I/usr/include/mpi
+  INC_NUTRLAN  = -I$(TOP)/INC -I/usr/include/openmpi-x86_64/
   INC         = $(INC_CLAPACK) $(INC_NUTRLAN)
 #
 # Object files
