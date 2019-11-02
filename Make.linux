@@ -41,7 +41,7 @@ endif
   LAPACK  = -llapack
   CLAPACK = 
   F2C     = 
-  LIB     = $(LIB_DIR) $(LAPACK) $(BLAS) $(CLAPACK) $(F2C) $(MATH) -lpthread
+  LIB     = $(LIB_DIR) $(LAPACK) $(BLAS) $(CLAPACK) $(F2C) $(MATH) -lgomp
   PLIB    = $(LIB) -lmpi 
 #
 # Include files

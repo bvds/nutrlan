@@ -37,11 +37,22 @@ endif
 # External libraries
   LIB_DIR =
   MATH    = -lm
+ifeq (1,0) # Use Blis
   BLAS    = -lblis
   LAPACK  = -lflame
-  CLAPACK = 
+else
+ifeq (1,1) # Use OpenBLAS
+  BLAS    = -L/opt/OpenBLAS/lib -lopenblas
+  LAPACK  = -lflame
+else   # Use MKL
+  MKLROOT = /opt/intel/mkl
+  BLAS    = 
+  LAPACK  = 
+  CLAPACK = $(MKLROOT)/lib/intel64/libmkl_blas95_lp64.a $(MKLROOT)/lib/intel64/libmkl_lapack95_lp64.a -Wl,--start-group $(MKLROOT)/lib/intel64/libmkl_intel_lp64.a $(MKLROOT)/lib/intel64/libmkl_gnu_thread.a $(MKLROOT)/lib/intel64/libmkl_core.a -Wl,--end-group -lgomp -lpthread -lm -ldl
+endif
+endif
   F2C     = 
-  LIB     = $(LIB_DIR) $(LAPACK) $(BLAS) $(CLAPACK) $(F2C) $(MATH) -lpthread
+  LIB     = $(LIB_DIR) $(LAPACK) $(BLAS) $(CLAPACK) $(F2C) $(MATH) -lgomp
   PLIB    = $(LIB) -lmpi 
 #
 # Include files
