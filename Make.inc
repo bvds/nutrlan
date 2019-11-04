@@ -20,6 +20,9 @@ CFLAGS = -DBLAS
 #
 ifeq ($(shell lscpu|grep -m 1 -c -i epyc),1)
 CFLAGS += -march=znver1 -mtune=znver1 -mfma -mavx2 -m3dnow -fomit-frame-pointer
+INC_NUTRLAN =  -I/usr/include/openmpi-x86_64/
+else
+INC_NUTRLAN = -I/usr/include/mpi
 endif
 #
 # Make command
@@ -56,11 +59,9 @@ endif
   PLIB    = $(LIB) -lmpi 
 #
 # Include files
-  INC_CLAPACK =
-#
-#   /usr/include/mpich or /usr/include/openmpi
-  INC_NUTRLAN  = -I$(TOP)/INC -I/usr/include/openmpi-x86_64/
-  INC         = $(INC_CLAPACK) $(INC_NUTRLAN)
+  INC_CLAPACK  =
+  INC_NUTRLAN += -I$(TOP)/INC
+  INC          = $(INC_CLAPACK) $(INC_NUTRLAN)
 #
 # Object files
   OBJ_REAL = dsort2.o dstqrb.o trlan.o trlaux.o trlcore.o restart.o trlmap.o

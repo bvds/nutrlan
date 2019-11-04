@@ -167,6 +167,9 @@ void trl_init_info(trl_info *info, int nrow, int mxlan, int lohi,
     info->target_id = 0;
     info->ref = 0.0;
     info->avgm = 0.0;
+    info->k1 = 0;
+    info->k2 = 0;
+    info->k = 0;
     info->mvparam = 0;
 
     info->stat = MPI_Comm_rank(mpicom, &(info->my_pe));
